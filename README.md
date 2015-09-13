@@ -16,8 +16,13 @@ Follow the steps below to obtain an ADS API token:
 
 2. [Visit this page](https://ui.adsabs.harvard.edu/#user/settings/token), log in with your ADS beta acconut and you will see a token string. Copy that token string.
 
-3. Set your token string to an environment variable named `ADS_API_TOKEN`. You can do that by running (in bash):
+3. Set your token string to an environment variable named `ADS_API_TOKEN`. You can do that by running:
      ``` bash
+     # If you use bash --
      export ADS_API_TOKEN="your token string here"
      ```
-
+     ``` csh
+     # If you use csh --
+     setenv ADS_API_TOKEN "your token string here"
+     ```
+    You can put this line into your `~/.bashrc` or `~/.cshrc` file.
