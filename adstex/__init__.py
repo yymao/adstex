@@ -1,20 +1,8 @@
-#!/usr/bin/env python
 """
-Find all citation keys (author:year, bibcode, arxiv, doi) in your tex documents 
-and search ADS for corresponding bibtex entries.
+Find all citation keys in your LaTeX documents and search NASA ADS 
+to generate corresponding bibtex entries. 
 
-System Requirements: Python 2.7
-
-Package Requirements: ads, bibtexparser
-You can install them by running:
-    pip install ads bibtexparser
-
-Usage: 
-    ./get_ads_bibtex.py file1.tex [file2.tex [...]] -o ref.bib
-
-Note: you need to setup ADS_API_TOKEN in your environment.
-Register an account at https://ui.adsabs.harvard.edu/
-and obtain your token at https://ui.adsabs.harvard.edu/#user/settings/token
+Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
 Copyright (c) 2015 Yao-Yuan Mao (yymao)
