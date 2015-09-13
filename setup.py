@@ -1,3 +1,14 @@
+"""
+Find all citation keys in your LaTeX documents and search NASA ADS 
+to generate corresponding bibtex entries. 
+
+Project website: https://github.com/yymao/adstex
+
+The MIT License (MIT)
+Copyright (c) 2015 Yao-Yuan Mao (yymao)
+http://opensource.org/licenses/MIT
+"""
+
 from setuptools import setup
 
 setup(
