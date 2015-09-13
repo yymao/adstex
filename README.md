@@ -1,8 +1,6 @@
 # adstex
 Find all citation keys in your LaTeX documents and search NASA ADS to generate corresponding bibtex entries.
 
-## Usage
-
 ## Installation
 
     pip install git+git://github.com/yymao/adstex.git
