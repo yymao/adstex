@@ -1,20 +1,24 @@
 # adstex
 Find all citation keys in your LaTeX documents and search NASA ADS to generate corresponding bibtex entries.
 
-# Usage: 
+## Usage
 
-    adstex file1.tex [file2.tex [...]] -o ref.bib
+## Installation
 
-## Package Requirements
-- ads >= 0.11.1
-- bibtexparser >= 0.6.1
+    pip install git+git://github.com/yymao/adstex.git
 
-# Notes
-You need to setup `ADS_API_TOKEN` in your environment.
-Register an account at https://ui.adsabs.harvard.edu/
-and obtain your token at https://ui.adsabs.harvard.edu/#user/settings/token
+## Usage
 
+    adstex file1.tex [file2.tex [...]] -o references.bib
 
-The MIT License (MIT)
-Copyright (c) 2015 Yao-Yuan Mao (yymao)
+### Obtain an ADS API token
+Follow the steps below to obtain an ADS API token:
+
+1. Visit the [ADS beta website]((https://ui.adsabs.harvard.edu/) to [register an account](https://ui.adsabs.harvard.edu/#user/account/register) if you don't have one.
+
+2. [Visit this page](https://ui.adsabs.harvard.edu/#user/settings/token), log in with your acconut and you will see a token string. Copy that string.
+
+3. Set your token string to an environment variable named `ADS_API_TOKEN`. You can do that by running (in bash):
+    export ADS_API_TOKEN=<your token string>
+
 
