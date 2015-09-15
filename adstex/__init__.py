@@ -28,6 +28,16 @@ _re_id['doi'] = re.compile(r'10\.\d{4,}(?:\.\d+)*\/(?:(?![\'"&<>])\S)+')
 _re_id['bibcode'] = re.compile(r'\d{4}\D\S{13}[A-Z.:]$')
 _re_id['arxiv'] = re.compile(r'(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})')
 
+_name_prefix = ('van', 'de', 'den', 'der', 'van de', 'van den', 'van der', 'von der')
+_name_prefix = sorted(_name_prefix, key=len, reverse=True)
+
+
+def _match_name_prefix(name):
+    for prefix in _name_prefix:
+        p = prefix.replace(' ', '')
+        if name.lower().startswith(p):
+            return ' '.join((prefix, name[len(p):]))
+
 
 def _y2toy4(y2):
     y2 = int(y2)
@@ -90,6 +100,33 @@ def id2bibcode(id):
                 return
 
 
+def authoryear2bibcode(author, year, key):
+    q = 'author:"^{}" year:{} database:("astronomy" OR "physics")'.format(author, year)
+    entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'], 
+            sort='citation_count desc', rows=20, max_pages=0))
+    if entries:
+        print _headerize('Choose an entry for {}'.format(key))
+        print u'\n'.join(format_ads_entry(*a) for a in enumerate(entries))
+        choices = range(0, len(entries)+1)
+        c = -1
+        while c not in choices:
+            c = raw_input('Choice (if no one matches, enter 0 to skip or enter an identifier): ')
+            bibcode = id2bibcode(c)
+            if bibcode:
+                return bibcode
+            try:
+                c = int(c)
+            except (TypeError, ValueError):
+                pass
+        if not c:
+            return
+        return entries[c-1].bibcode
+    elif ' ' not in author:
+        new_author = _match_name_prefix(author)
+        if new_author:
+            return authoryear2bibcode(new_author, year, key)
+
+
 def find_bibcode(key):
     bibcode = id2bibcode(key)
     if bibcode:
@@ -100,26 +137,9 @@ def find_bibcode(key):
         fa, y = m.groups()
         if len(y) == 2:
             y = _y2toy4(y)
-        q = 'author:"^{}" year:{} database:("astronomy" OR "physics")'.format(fa, y)
-        entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'], 
-                sort='citation_count desc', rows=20, max_pages=0))
-        if entries:
-            print _headerize('Choose an entry for {}'.format(key))
-            print u'\n'.join(format_ads_entry(*a) for a in enumerate(entries))
-            choices = range(0, len(entries)+1)
-            c = -1
-            while c not in choices:
-                c = raw_input('Choice (if no one matches, enter 0 to skip or enter an identifier): ')
-                bibcode = id2bibcode(c)
-                if bibcode:
-                    return bibcode
-                try:
-                    c = int(c)
-                except (TypeError, ValueError):
-                    pass
-            if not c:
-                return
-            return entries[c-1].bibcode
+        bibcode = authoryear2bibcode(fa, y, key)
+        if bibcode:
+            return bibcode
 
     print _headerize('Enter an identifier (bibcode, arxiv, doi) for {}'.format(key))
     c = True
