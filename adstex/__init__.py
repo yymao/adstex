@@ -22,7 +22,7 @@ _this_year = date.today().year % 100
 _this_cent = date.today().year / 100
 
 _re_cite = re.compile(r'\\[cC]ite[aeihmlonpsrutyx]{0,7}\*?(?:\[.*\])?{([\w\s/&.:,-]+)}')
-_re_fayear = re.compile(r'([A-Za-z_-]+):?((?:\d{2})?\d{2})')
+_re_fayear = re.compile(r'([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})')
 _re_id = {}
 _re_id['doi'] = re.compile(r'10\.\d{4,}(?:\.\d+)*\/(?:(?![\'"&<>])\S)+')
 _re_id['bibcode'] = re.compile(r'\d{4}\D\S{13}[A-Z.:]$')
