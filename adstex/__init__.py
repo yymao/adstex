@@ -200,26 +200,30 @@ def main():
     else:
         bib = bibtexparser.loads('')
 
-    not_found = list()
-    to_retrieve = defaultdict(list)
+    not_found = set()
+    to_retrieve = set()
+    all_entries = defaultdict(list)
     try:
         for key in keys:
             if key in bib.entries_dict:
                 if args.update:
                     bibcode = extract_bibcode(bib.entries_dict[key])
                     bibcode_new = entry2bibcode(bib.entries_dict[key])
-                    if bibcode_new and bibcode_new != bibcode:
-                        to_retrieve[bibcode_new].append(key)
-                        print '{}: UPDATE => {}'.format(key, bibcode_new)
-                        continue
+                    if bibcode_new:
+                        all_entries[bibcode_new].append(key)
+                        if bibcode_new != bibcode:
+                            to_retrieve.add(bibcode_new)
+                            print '{}: UPDATE => {}'.format(key, bibcode_new)
+                            continue
                 print '{}: EXISTING'.format(key)
                 continue
             bibcode = find_bibcode(key)
             if bibcode:
-                to_retrieve[bibcode].append(key)
+                to_retrieve.add(bibcode)
+                all_entries[bibcode].append(key)
                 print '{}: NEW ENTRY => {}'.format(key, bibcode)
             else:
-                not_found.append(key)
+                not_found.add(key)
                 print '{}: NOT FOUND'.format(key)
     except KeyboardInterrupt:
         print
@@ -228,18 +232,18 @@ def main():
         print _headerize('Please check the following keys')
         for key in not_found:
             print key
+    
+    repeated_keys = [t for t in all_entries.iteritems() if len(t[1]) > 1]
+    if repeated_keys:
+        print _headerize('The following keys refer to the same entry')
+        for b, k in repeated_keys:
+            print '{1} has been referred as the following keys; please keep only one:\n{0}\n'.format(' '.join(k), b)
 
     if to_retrieve:
-        repeated_keys = [t for t in to_retrieve.iteritems() if len(t[1]) > 1]
-        if repeated_keys:
-            print _headerize('The following keys refer to the same entry')
-            for b, k in repeated_keys:
-                print '{} refers to {}.\n  Keep only {}\n'.format(', '.join(k), b, k[0])
-
         print _headerize('Building new bibtex file, please wait...')
-        bib_new = bibtexparser.loads(ads.ExportQuery(to_retrieve.keys(), 'bibtex').execute())
+        bib_new = bibtexparser.loads(ads.ExportQuery(list(to_retrieve), 'bibtex').execute())
         for entry in bib_new.entries:
-            entry['ID'] = to_retrieve[entry['ID']][0]
+            entry['ID'] = all_entries[entry['ID']][0]
         bib = update_bib(bib, bib_new)
         with open(args.output, 'w') as fp:
             bibtexparser.dump(bib, fp)
