@@ -5,7 +5,7 @@ to generate corresponding bibtex entries.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2017 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 
@@ -19,7 +19,7 @@ import ads
 import bibtexparser
 
 _this_year = date.today().year % 100
-_this_cent = date.today().year / 100
+_this_cent = date.today().year // 100
 
 _re_cite = re.compile(r'\\[cC]ite[aeihmlonpsrutyx]{0,7}\*?(?:\[.*\])?{([\w\s/&.:,-]+)}')
 _re_fayear = re.compile(r'([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})')
@@ -245,8 +245,9 @@ def main():
         for entry in bib_new.entries:
             entry['ID'] = all_entries[entry['ID']][0]
         bib = update_bib(bib, bib_new)
+        bib_dump_str = bibtexparser.dumps(bib).encode('utf8')
         with open(args.output, 'w') as fp:
-            bibtexparser.dump(bib, fp)
+            fp.write(bib_dump_str)
 
     print _headerize('Done!')
 
