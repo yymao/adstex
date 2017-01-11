@@ -190,6 +190,7 @@ def main():
     parser.add_argument('files', metavar='TEX', nargs='+', help='tex files to search citation keys')
     parser.add_argument('-o', '--output', metavar='BIB', required=True, help='output bibtex file')
     parser.add_argument('--no-update', dest='update', action='store_false')
+    parser.add_argument('--force-update', dest='force_update', action='store_true')
     args = parser.parse_args()
 
     keys = search_keys(args.files)
@@ -211,7 +212,7 @@ def main():
                     bibcode_new = entry2bibcode(bib.entries_dict[key])
                     if bibcode_new:
                         all_entries[bibcode_new].append(key)
-                        if bibcode_new != bibcode:
+                        if bibcode_new != bibcode or args.force_update:
                             to_retrieve.add(bibcode_new)
                             print '{}: UPDATE => {}'.format(key, bibcode_new)
                             continue
