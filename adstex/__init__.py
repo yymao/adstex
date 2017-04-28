@@ -1,6 +1,6 @@
 """
-Find all citation keys in your LaTeX documents and search NASA ADS 
-to generate corresponding bibtex entries. 
+Find all citation keys in your LaTeX documents and search NASA ADS
+to generate corresponding bibtex entries.
 
 Project website: https://github.com/yymao/adstex
 
@@ -84,8 +84,8 @@ def format_author(authors, max_char):
 
 def format_ads_entry(i, entry, max_char=78):
     title = entry.title[0][:max_char-4] if entry.title else '<no title>'
-    return u'[{}] {} (cited {} times)\n    {}\n    {}\n'.format(i+1, entry.bibcode, 
-            entry.citation_count, format_author(entry.author, max_char-4), 
+    return u'[{}] {} (cited {} times)\n    {}\n    {}\n'.format(i+1, entry.bibcode,
+            entry.citation_count, format_author(entry.author, max_char-4),
             title)
 
 
@@ -102,7 +102,7 @@ def id2bibcode(id):
 
 def authoryear2bibcode(author, year, key):
     q = 'author:"^{}" year:{} database:("astronomy" OR "physics")'.format(author, year)
-    entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'], 
+    entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'],
             sort='citation_count desc', rows=20, max_pages=0))
     if entries:
         print _headerize('Choose an entry for {}'.format(key))
@@ -188,18 +188,26 @@ def update_bib(b1, b2):
 def main():
     parser = ArgumentParser()
     parser.add_argument('files', metavar='TEX', nargs='+', help='tex files to search citation keys')
-    parser.add_argument('-o', '--output', metavar='BIB', required=True, help='output bibtex file')
+    parser.add_argument('-o', '--output', metavar='BIB', required=True, help='main bibtex file, also used for output')
+    parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files for references (read-only)')
     parser.add_argument('--no-update', dest='update', action='store_false')
     parser.add_argument('--force-update', dest='force_update', action='store_true')
     args = parser.parse_args()
 
     keys = search_keys(args.files)
-    
+
     if os.path.isfile(args.output):
         with open(args.output) as fp:
             bib = bibtexparser.load(fp)
     else:
         bib = bibtexparser.loads('')
+
+    bib_other = bibtexparser.loads('')
+    if args.other:
+        for f in args.other:
+            with open(f) as fp:
+                bib_other = update_bib(bib_other, bibtexparser.load(fp))
+
 
     not_found = set()
     to_retrieve = set()
@@ -218,6 +226,11 @@ def main():
                             continue
                 print '{}: EXISTING'.format(key)
                 continue
+
+            if key in bib_other.entries_dict:
+                print '{}: FOUND IN OTHER REFS, IGNORED'.format(key)
+                continue
+
             bibcode = find_bibcode(key)
             if bibcode:
                 to_retrieve.add(bibcode)
@@ -233,7 +246,7 @@ def main():
         print _headerize('Please check the following keys')
         for key in not_found:
             print key
-    
+
     repeated_keys = [t for t in all_entries.iteritems() if len(t[1]) > 1]
     if repeated_keys:
         print _headerize('The following keys refer to the same entry')
