@@ -13,7 +13,7 @@ from setuptools import setup
 
 setup(
     name='adstex',
-    version='0.1.8',
+    version='0.1.9',
     description='Find all citation keys in your LaTeX documents and search NASA ADS to generate corresponding bibtex entries.',
     url='https://github.com/yymao/adstex',
     author='Yao-Yuan Mao',
