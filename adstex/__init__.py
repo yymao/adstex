@@ -260,7 +260,7 @@ def main():
             entry['ID'] = all_entries[entry['ID']][0]
         bib = update_bib(bib, bib_new)
         bib_dump_str = bibtexparser.dumps(bib).encode('utf8')
-        with open(args.output, 'w') as fp:
+        with open(args.output, 'wb') as fp:
             fp.write(bib_dump_str)
 
     print _headerize('Done!')
