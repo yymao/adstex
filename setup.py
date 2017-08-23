@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Find all citation keys in your LaTeX documents and search NASA ADS
 to generate corresponding bibtex entries.
@@ -18,9 +19,10 @@ setup(
     url='https://github.com/yymao/adstex',
     author='Yao-Yuan Mao',
     author_email='yymao.astro@gmail.com',
+    maintainer='Yao-Yuan Mao',
+    maintainer_email='yymao.astro@gmail.com',
     license='MIT',
     classifiers=[
-        'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Science/Research',

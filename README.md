@@ -3,6 +3,10 @@ Find all citation keys in your LaTeX documents and search NASA ADS to generate c
 
 ## Installation
 
+    pip install adstex
+
+or, if you want to use the latest version.
+
     pip install git+git://github.com/yymao/adstex.git
 
 ## Usage
