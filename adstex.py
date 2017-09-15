@@ -31,6 +31,8 @@ _re_id['arxiv'] = re.compile(r'(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7}
 _name_prefix = ('van', 'di', 'de', 'den', 'der', 'van de', 'van den', 'van der', 'von der')
 _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
+_database = "astronomy"
+
 
 def _match_name_prefix(name):
     for prefix in _name_prefix:
@@ -101,7 +103,7 @@ def id2bibcode(id):
 
 
 def authoryear2bibcode(author, year, key):
-    q = 'author:"^{}" year:{} database:("astronomy" OR "physics")'.format(author, year)
+    q = 'author:"^{}" year:{} database:{}'.format(author, year, _database)
     entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'],
             sort='citation_count desc', rows=20, max_pages=0))
     if entries:
@@ -192,7 +194,11 @@ def main():
     parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files for references (read-only)')
     parser.add_argument('--no-update', dest='update', action='store_false')
     parser.add_argument('--force-update', dest='force_update', action='store_true')
+    parser.add_argument('--include-physics', dest='include_physics', action='store_true')
     args = parser.parse_args()
+
+    if args.include_physics:
+        _database = '("astronomy" OR "physics")'
 
     keys = search_keys(args.files)
 
