@@ -1,4 +1,6 @@
 # adstex
+[![PyPI version](https://img.shields.io/pypi/v/adstex.svg)](https://pypi.python.org/pypi/adstex)
+
 Find all citation keys in your LaTeX documents and search NASA ADS to generate corresponding bibtex entries.
 
 ## Installation
