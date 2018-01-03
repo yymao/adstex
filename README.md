@@ -7,13 +7,26 @@ Find all citation keys in your LaTeX documents and search NASA ADS to generate c
 
     pip install adstex
 
-or, if you want to use the latest version.
+Or, if you want to use the version in the master branch (not recommended):
 
-    pip install git+git://github.com/yymao/adstex.git
+    pip install https://github.com/yymao/adstex/archive/master.zip
 
 ## Usage
 
-    adstex file1.tex [file2.tex [...]] -o references.bib
+_Note: You need to first obtain an ADS API token. See instructions at the bottom of this README._
+
+    adstex file1.tex [file2.tex [...]] -o references_output.bib [-r references_readonly.bib] 
+
+In your tex files, you can cite paper using arXiv IDs, ADS bibcodes, DOIs, and first author + year, with any `natbib` commands. Here's some examples:
+
+```tex
+\citep{1705.03888}
+\citet{Mao2017}
+\citealt{10.1093/mnras/stx3111,2017arXiv170909665M}
+```
+
+For first author + year citations, `adstex` will prompt you to select the paper you are looking for. You can also directly enter an ADS bibcode if you don't see the correct paper when prompted. 
+
 
 ### Obtain an ADS API token
 Follow the steps below to obtain an ADS API token:
