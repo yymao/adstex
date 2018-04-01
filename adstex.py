@@ -8,15 +8,21 @@ The MIT License (MIT)
 Copyright (c) 2015-2017 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
-
+from __future__ import print_function
 import os
 import re
 from argparse import ArgumentParser
 from datetime import date
-from urllib import unquote
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib import unquote
 from collections import defaultdict
+from builtins import input
 import ads
 import bibtexparser
+
+__version__ = "0.2.1"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -32,6 +38,23 @@ _name_prefix = ('van', 'di', 'de', 'den', 'der', 'van de', 'van den', 'van der',
 _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
 _database = "astronomy"
+
+
+def fixedAdsSearchQuery(*args, **kwargs):
+    q = ads.SearchQuery(*args, **kwargs)
+    q.session
+    if "Content-Type" in q._session.headers:
+        del q._session.headers["Content-Type"]
+    return q
+
+
+def get_bparser():
+    try:
+        mybparser = bibtexparser.bparser.BibTexParser(common_strings=True)
+        mybparser.bib_database.strings['june'] = 'June'
+    except TypeError:
+        mybparser = bibtexparser.bparser.BibTexParser()
+    return mybparser
 
 
 def _match_name_prefix(name):
@@ -65,7 +88,7 @@ def search_keys(files):
     keys = set()
     for f in files:
         with open(f) as fp:
-           text = fp.read()
+            text = fp.read()
         for m in _re_cite.finditer(text):
             for k in m.groups()[0].split(','):
                 keys.add(k.strip())
@@ -95,7 +118,7 @@ def id2bibcode(id):
     for id_type in ('bibcode', 'arxiv', 'doi'):
         m = _re_id[id_type].match(id)
         if m:
-            s = ads.SearchQuery(q=':'.join((id_type, m.group())), fl=['bibcode'])
+            s = fixedAdsSearchQuery(q=':'.join((id_type, m.group())), fl=['bibcode'])
             try:
                 return s.next().bibcode
             except StopIteration:
@@ -104,15 +127,15 @@ def id2bibcode(id):
 
 def authoryear2bibcode(author, year, key):
     q = 'author:"^{}" year:{} database:{}'.format(author, year, _database)
-    entries = list(ads.SearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'],
-            sort='citation_count desc', rows=20, max_pages=0))
+    entries = list(fixedAdsSearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'],
+                                       sort='citation_count desc', rows=20, max_pages=0))
     if entries:
-        print _headerize('Choose an entry for {}'.format(key))
-        print u'\n'.join(format_ads_entry(*a) for a in enumerate(entries))
+        print(_headerize('Choose an entry for {}'.format(key)))
+        print(u'\n'.join(format_ads_entry(*a) for a in enumerate(entries)))
         choices = range(0, len(entries)+1)
         c = -1
         while c not in choices:
-            c = raw_input('Choice (if no one matches, enter 0 to skip or enter an identifier): ')
+            c = input('Choice (if no one matches, enter 0 to skip or enter an identifier): ')
             bibcode = id2bibcode(c)
             if bibcode:
                 return bibcode
@@ -143,10 +166,10 @@ def find_bibcode(key):
         if bibcode:
             return bibcode
 
-    print _headerize('Enter an identifier (bibcode, arxiv, doi) for {}'.format(key))
+    print(_headerize('Enter an identifier (bibcode, arxiv, doi) for {}'.format(key)))
     c = True
     while c:
-        c = raw_input('Identifier (or press ENTER to skip): ')
+        c = input('Identifier (or press ENTER to skip): ')
         bibcode = id2bibcode(c)
         if bibcode:
             return bibcode
@@ -158,21 +181,21 @@ def extract_bibcode(entry):
 
 def entry2bibcode(entry):
     if 'adsurl' in entry:
-        s = ads.SearchQuery(bibcode=extract_bibcode(entry), fl=['bibcode'])
+        s = fixedAdsSearchQuery(bibcode=extract_bibcode(entry), fl=['bibcode'])
         try:
             return s.next().bibcode
         except StopIteration:
             pass
 
     if 'doi' in entry:
-        s = ads.SearchQuery(doi=entry['doi'], fl=['bibcode'])
+        s = fixedAdsSearchQuery(doi=entry['doi'], fl=['bibcode'])
         try:
             return s.next().bibcode
         except StopIteration:
             pass
 
     if 'eprint' in entry:
-        s = ads.SearchQuery(arxiv=entry['eprint'], fl=['bibcode'])
+        s = fixedAdsSearchQuery(arxiv=entry['eprint'], fl=['bibcode'])
         try:
             return s.next().bibcode
         except StopIteration:
@@ -183,7 +206,7 @@ def update_bib(b1, b2):
     b1._entries_dict.clear()
     b2._entries_dict.clear()
     b1.entries_dict.update(b2.entries_dict)
-    b1.entries = b1.entries_dict.values()
+    b1.entries = list(b1.entries_dict.values())
     return b1
 
 
@@ -204,16 +227,15 @@ def main():
 
     if os.path.isfile(args.output):
         with open(args.output) as fp:
-            bib = bibtexparser.load(fp)
+            bib = bibtexparser.load(fp, parser=get_bparser())
     else:
-        bib = bibtexparser.loads('')
+        bib = bibtexparser.loads(' ', parser=get_bparser())
 
-    bib_other = bibtexparser.loads('')
+    bib_other = bibtexparser.loads(' ', parser=get_bparser())
     if args.other:
         for f in args.other:
             with open(f) as fp:
-                bib_other = update_bib(bib_other, bibtexparser.load(fp))
-
+                bib_other = update_bib(bib_other, bibtexparser.load(fp, parser=get_bparser()))
 
     not_found = set()
     to_retrieve = set()
@@ -228,40 +250,40 @@ def main():
                         all_entries[bibcode_new].append(key)
                         if bibcode_new != bibcode or args.force_update:
                             to_retrieve.add(bibcode_new)
-                            print '{}: UPDATE => {}'.format(key, bibcode_new)
+                            print('{}: UPDATE => {}'.format(key, bibcode_new))
                             continue
-                print '{}: EXISTING'.format(key)
+                print('{}: EXISTING'.format(key))
                 continue
 
             if key in bib_other.entries_dict:
-                print '{}: FOUND IN OTHER REFS, IGNORED'.format(key)
+                print('{}: FOUND IN OTHER REFS, IGNORED'.format(key))
                 continue
 
             bibcode = find_bibcode(key)
             if bibcode:
                 to_retrieve.add(bibcode)
                 all_entries[bibcode].append(key)
-                print '{}: NEW ENTRY => {}'.format(key, bibcode)
+                print('{}: NEW ENTRY => {}'.format(key, bibcode))
             else:
                 not_found.add(key)
-                print '{}: NOT FOUND'.format(key)
+                print('{}: NOT FOUND'.format(key))
     except KeyboardInterrupt:
-        print
+        print()
 
     if not_found:
-        print _headerize('Please check the following keys')
+        print(_headerize('Please check the following keys'))
         for key in not_found:
-            print key
+            print(key)
 
-    repeated_keys = [t for t in all_entries.iteritems() if len(t[1]) > 1]
+    repeated_keys = [t for t in all_entries.items() if len(t[1]) > 1]
     if repeated_keys:
-        print _headerize('The following keys refer to the same entry')
+        print(_headerize('The following keys refer to the same entry'))
         for b, k in repeated_keys:
-            print '{1} has been referred as the following keys; please keep only one:\n{0}\n'.format(' '.join(k), b)
+            print('{1} has been referred as the following keys; please keep only one:\n{0}\n'.format(' '.join(k), b))
 
     if to_retrieve:
-        print _headerize('Building new bibtex file, please wait...')
-        bib_new = bibtexparser.loads(ads.ExportQuery(list(to_retrieve), 'bibtex').execute())
+        print(_headerize('Building new bibtex file, please wait...'))
+        bib_new = bibtexparser.loads(ads.ExportQuery(list(to_retrieve), 'bibtex').execute(), parser=get_bparser())
         for entry in bib_new.entries:
             entry['ID'] = all_entries[entry['ID']][0]
         bib = update_bib(bib, bib_new)
@@ -269,7 +291,7 @@ def main():
         with open(args.output, 'wb') as fp:
             fp.write(bib_dump_str)
 
-    print _headerize('Done!')
+    print(_headerize('Done!'))
 
 
 if __name__ == "__main__":
