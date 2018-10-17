@@ -5,7 +5,7 @@ to generate corresponding bibtex entries.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2017 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2018 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import print_function
@@ -22,12 +22,12 @@ from builtins import input
 import ads
 import bibtexparser
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
-_re_cite = re.compile(r'\\[cC]ite[aeihmlonpsrutyx]{0,7}\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}')
+_re_cite = re.compile(r'\\[cC]ite[a-z]{0,7}\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}')
 _re_fayear = re.compile(r'([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})')
 _re_id = {}
 _re_id['doi'] = re.compile(r'10\.\d{4,}(?:\.\d+)*\/(?:(?![\'"&<>])\S)+')
@@ -78,8 +78,8 @@ def _is_like_string(s):
     return True
 
 
-def _headerize(msg):
-    return '\n{0}\n{1}\n{0}'.format('-'*60, msg)
+def _headerize(msg, extraline=True):
+    return '{2}{0}\n{1}\n{0}'.format('-'*60, msg, '\n' if extraline else '')
 
 
 def search_keys(files):
@@ -109,14 +109,14 @@ def format_author(authors, max_char):
 
 def format_ads_entry(i, entry, max_char=78):
     title = entry.title[0][:max_char-4] if entry.title else '<no title>'
-    return u'[{}] {} (cited {} times)\n    {}\n    {}\n'.format(i+1, entry.bibcode,
+    return u'[{}] {} (cited {} times)\n    {}\n    {}'.format(i, entry.bibcode,
             entry.citation_count, format_author(entry.author, max_char-4),
             title)
 
 
-def id2bibcode(id):
+def id2bibcode(id_this):
     for id_type in ('bibcode', 'arxiv', 'doi'):
-        m = _re_id[id_type].match(id)
+        m = _re_id[id_type].match(id_this)
         if m:
             s = fixedAdsSearchQuery(q=':'.join((id_type, m.group())), fl=['bibcode'])
             try:
@@ -130,12 +130,14 @@ def authoryear2bibcode(author, year, key):
     entries = list(fixedAdsSearchQuery(q=q, fl=['id', 'author', 'bibcode', 'title', 'citation_count'],
                                        sort='citation_count desc', rows=20, max_pages=0))
     if entries:
-        print(_headerize('Choose an entry for {}'.format(key)))
-        print(u'\n'.join(format_ads_entry(*a) for a in enumerate(entries)))
-        choices = range(0, len(entries)+1)
+        total = len(entries)
+        print(_headerize('Choose one entry from below for "{}" (most cited at the end)'.format(key)))
+        print(u'\n\n'.join(format_ads_entry(total-i, e) for i, e in enumerate(reversed(entries))))
+        print(_headerize('Choose one entry from above for "{}"'.format(key, extraline=False)))
+        choices = list(range(0, len(entries)+1))
         c = -1
         while c not in choices:
-            c = input('Choice (if no one matches, enter 0 to skip or enter an identifier): ')
+            c = input('ENTER choice (if no matches, ENTER 0 to skip or ENTER an identifier): ')
             bibcode = id2bibcode(c)
             if bibcode:
                 return bibcode
@@ -166,7 +168,7 @@ def find_bibcode(key):
         if bibcode:
             return bibcode
 
-    print(_headerize('Enter an identifier (bibcode, arxiv, doi) for {}'.format(key)))
+    print(_headerize('ENTER an identifier (bibcode, arxiv, doi) for "{}"'.format(key)))
     c = True
     while c:
         c = input('Identifier (or press ENTER to skip): ')
@@ -213,11 +215,12 @@ def update_bib(b1, b2):
 def main():
     parser = ArgumentParser()
     parser.add_argument('files', metavar='TEX', nargs='+', help='tex files to search citation keys')
-    parser.add_argument('-o', '--output', metavar='BIB', required=True, help='main bibtex file, also used for output')
-    parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files for references (read-only)')
-    parser.add_argument('--no-update', dest='update', action='store_false')
-    parser.add_argument('--force-update', dest='force_update', action='store_true')
-    parser.add_argument('--include-physics', dest='include_physics', action='store_true')
+    parser.add_argument('-o', '--output', metavar='BIB', required=True, help='main bibtex file; new entries will be added to this file, existing entries may be updated')
+    parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files that contain existing references (read-only)')
+    parser.add_argument('--no-update', dest='update', action='store_false', help='for existing entries, do not check ADS for updates')
+    parser.add_argument('--force-update', dest='force_update', action='store_true', help='for all existing entries, overwrite with the latest version from ADS')
+    parser.add_argument('--include-physics', dest='include_physics', action='store_true', help='include physics database when searching ADS')
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     if args.include_physics:
