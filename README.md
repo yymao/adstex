@@ -1,54 +1,166 @@
 # adstex
 [![PyPI version](https://img.shields.io/pypi/v/adstex.svg)](https://pypi.python.org/pypi/adstex)
 
-Find all citation keys in your LaTeX documents and search NASA ADS to generate corresponding bibtex entries.
+Tried of copying and pasting bibtex entries?
+Here's a new way to manage your bibtex entries --- do not manage them!
 
-## Installation
+`adstex` automatically identifies all citation keys in your TeX source files
+and use NASA's [Astrophysics Data System](https://ui.adsabs.harvard.edu/) (ADS)
+to generate corresponding bibtex entries!
 
-    pip install adstex
 
-Or, if you want to use the version in the master branch (not recommended):
+## Features
 
-    pip install https://github.com/yymao/adstex/archive/master.zip
+- Write your papers without worrying about the bibtex entries.
+  Simply put down arXiv IDs, ADS bibcodes, DOIs, or first author & year citation keys
+  in your `\cite` commands,
+  and then use `adstex` to automatically generate the bibtex file for you.
 
-## Usage
+- `adstex` recognizes all variants of the `\cite` commands,
+  and works with various styles of citation keys.
+  For example, `adstex` would work with all of the following:
+  ```tex
+  \citet{1705.03888}
+  \citep[e.g.,]{Mao:2015, White2018}
+  \citealt{10.1093/mnras/stx3111, 2017arXiv170909665M}
+  ```
 
-_Note: You need to first obtain an ADS API token. See instructions at the bottom of this README._
+- `adstex` works along with your existing bibtex files.
+  It simply skips (or updates) those citation keys that already have corresponding bibtex entries.
+
+- `adstex` will also update existing bibtex entries for you!
+  Citing an arXiv preprint which is now published in a journal?
+  No problem, `adstex` will detect this and automatically update the bibtex entry.
+  (_This is amazing, yes, I know!_)
+
+- `adstex` also detect citation keys that actually refer to the same paper
+  (e.g., you use an author:year citation key but another collaborator uses an
+  arxiv ID as key for the same paper),
+  and will prompt you to fix these issues.
+
+
+## Installation and Setup
+
+### Install `adstex`
 
 ```bash
-adstex file1.tex [file2.tex [...]] -o references_output.bib [-r references_readonly.bib]
+pip install adstex
 ```
+_Yes, simple as that._
 
-In your tex files, you can cite paper using arXiv IDs, ADS bibcodes, DOIs, and first author + year, with any `natbib` commands. Here's some examples:
+### Set up an ADS API token
 
-```tex
-\citep{1705.03888}
-\citet{Mao2017}
-\citep[e.g.,]{Mao:2015, White:2018}
-\citealt{10.1093/mnras/stx3111, 2017arXiv170909665M}
-```
-
-For first author + year citations, `adstex` will prompt you to select the paper you are looking for. You can also directly enter an ADS bibcode if you don't see the correct paper when prompted.
-
-To see a complete option list, run:
-```bash
-adstex --help
-```
-
-### Obtain an ADS API token
-Follow the steps below to obtain an ADS API token:
+`adstex` requires an API token to use ADS. Here's how to obtain one:
 
 1. Visit [NASA/ADS](https://ui.adsabs.harvard.edu/) to [sign up for an account](https://ui.adsabs.harvard.edu/user/account/register) if you don't have one.
 
-2. Visit the [API Token page](https://ui.adsabs.harvard.edu/user/settings/token), log in with your NASA/ADS account and you will see an API token string. Copy that token string.
+2. Visit the [API Token page](https://ui.adsabs.harvard.edu/user/settings/token), log in with your ADS account and you will see an API token string. Copy that token string.
 
 3. Set your token string to an environment variable named `ADS_API_TOKEN`. You can do that by running:
-     ``` bash
-     # If you use bash --
-     export ADS_API_TOKEN="your token string here"
-     ```
-     ``` csh
-     # If you use csh --
-     setenv ADS_API_TOKEN "your token string here"
-     ```
+    ```bash
+    # If you use bash or bash-like shells --
+    export ADS_API_TOKEN="your token string here"
+    ```
+    ```csh
+    # If you use csh or csh-like shells --
+    setenv ADS_API_TOKEN "your token string here"
+    ```
     You can put this line into your `~/.bashrc` or `~/.cshrc` file.
+
+
+## Usage
+
+Once you finish the paper (_sorry, can't help with that!_), simply run `adstex`
+with the following command:
+
+```bash
+adstex input_file1.tex [input_file2.tex [...]] -o output_references.bib
+```
+
+- You can provide multiple TeX source files (`input_file1.tex` ...) at once.
+Internet connection is needed for `adstex` to work.
+
+- For citation keys that are arXiv IDs, ADS bibcodes, or DOIs,
+`adstex` will automatically find the cooresponding bibtex entries.
+
+- For first author + year citation keys, `adstex` will search on NASA ADS and
+provide you a list of candidate papers to select from.
+If you don't see the paper you are looking for, you can
+directly enter an ADS bibcode or arXiv ID when prompted.
+
+- Once `adstex` is done, it will write all bibtex entries in the file
+that you specified with the `-o` option.
+
+- You can also find a complete option list by running:
+  ```bash
+  adstex --help
+  ```
+  However, you may find the following FAQs more informative.
+
+
+## FAQs
+
+1. **Can `adstex` recognize citation keys with multiple authors or compound surnames?**
+
+   Not always; `adstex` uses [regular expression](https://en.wikipedia.org/wiki/Regular_expression), not AI.
+
+   For citation keys with multiple authors, if you use a separator to separate
+   the surnames, (e.g., `\cite{Press:Schechter:1974}`), the `adstex` will be able to
+   identify the first author and year to conduct a search on the ADS.
+
+   For compound surnames, your best bets are
+   joinning the words without the spaces (e.g., `\cite{deSitter:1913}`), and
+   keeping the hyphens (e.g., `\cite{Boylan-Kolchin:1913}`).
+
+   Note that in the event that `adstex` cannot find the correct paper from a
+   first author + year citation key, it will prompt you to enter an identifier
+   (ADS bibcode, arXiv ID, or DOI) for that key.
+
+
+2. **I have some other bibtex files, how to ask `adstex` to skip citation keys that already have existing entries in those files?**
+
+   Use the `-r` option to provide additional existing bibtex files.
+   `adstex` will read in these files without modifying them
+   (only the file specified by `-o` will be modified). Here's an example command:
+
+   ```bash
+   adstex main.tex -o main.bib -r software.bib classic.bib
+   ```
+
+3. **Does this work with the ADS astronomy database only?**
+
+   For citation keys that are arXiv IDs, ADS bibcodes, or DOIs,
+   `adstex` would work with any entry as long as it is in the ADS.
+
+   For first author + year citation keys, by default `adstex` would only
+   search the astronomy database on NASA ADS.
+   However, you can use `--include-physics` to include the ADS physics database.
+
+   `adstex` only works with the ADS, and hence the name of this program :)
+
+
+4. **`adstex` seems to run very slowly. Is there any way to speed it up?**
+
+   By default, `adstex` check if existing entries have any updates
+   (e.g., arXiv preprint becoming a journal paper), and this process may slow
+   down the execution.
+   You can use `--no-update` to turn this feature off,
+   so that `adstex` will only look for new entries.
+
+
+5. **`adstex` saves me so much time. How do I acknowledge it?**
+
+   First of all, thank you :).
+
+   `adstex` won't exsit without NASA's ADS, so please do acknowledge them by
+   adding the following to your acknowledgements section:
+   ```tex
+   This research has made use of NASA's Astrophysics Data System.
+   ```
+   (_Note: `adstex` is not affiliated with nor endorsed by NASA's ADS._)
+
+   Then, if you would like to also acknowledge `adstex`, you can adding
+   the following to your acknowledgements section:
+   ```tex
+   This research has made use of adstex (\url{https://github.com/yymao/adstex}).
+   ```
