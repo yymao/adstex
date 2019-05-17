@@ -127,7 +127,18 @@ that you specified with the `-o` option.
    adstex main.tex -o main.bib -r software.bib classic.bib
    ```
 
-3. **Does this work with the ADS astronomy database only?**
+3. **How do I use `adstex` as a reference manager? Or can I use `adstex` with other reference managers (e.g., JabRef, Mendeley, Zotero)?**
+
+    `adstex` is not a reference manager, and will not be one.
+    The philosophy behind `adstex` is to *not* manage the references,
+    because NASA's ADS is already doing that for us (and is doing an excellent job)!
+    So `adstex` simply generates the bibtex file using the ADS on the fly.
+
+    If you are already using a reference manager, you may want to continue to use it to generate bibtex files. You can then use `adstex` to fetch just the new entries (see FAQ #2).
+    You can also use `adstex` to update all existing entries with the latest version from the ADS
+    by specifying the option `--force-update`.
+
+4. **Does this work with the ADS astronomy database only?**
 
    For citation keys that are arXiv IDs, ADS bibcodes, or DOIs,
    `adstex` would work with any entry as long as it is in the ADS.
@@ -139,7 +150,7 @@ that you specified with the `-o` option.
    `adstex` only works with the ADS, and hence the name of this program :)
 
 
-4. **`adstex` seems to run very slowly. Is there any way to speed it up?**
+5. **`adstex` seems to run very slowly. Is there any way to speed it up?**
 
    By default, `adstex` check if existing entries have any updates
    (e.g., arXiv preprint becoming a journal paper), and this process may slow
@@ -148,7 +159,7 @@ that you specified with the `-o` option.
    so that `adstex` will only look for new entries.
 
 
-5. **`adstex` saves me so much time. How do I acknowledge it?**
+6. **`adstex` saves me so much time. How do I acknowledge it?**
 
    First of all, thank you :).
 
