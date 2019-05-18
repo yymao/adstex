@@ -5,7 +5,7 @@ to generate corresponding bibtex entries.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2018 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2019 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import print_function
