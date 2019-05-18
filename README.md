@@ -135,8 +135,10 @@ that you specified with the `-o` option.
     So `adstex` simply generates the bibtex file using the ADS on the fly.
 
     If you are already using a reference manager, you may want to continue to use it to generate bibtex files. You can then use `adstex` to fetch just the new entries (see FAQ #2).
-    You can also use `adstex` to update all existing entries with the latest version from the ADS
-    by specifying the option `--force-update`.
+    You can also use `adstex` to update all existing entries with the latest version from the ADS by running:
+    ```bash
+    adstex your_bibtex_file.bib
+    ```
 
 4. **Does this work with the ADS astronomy database only?**
 
