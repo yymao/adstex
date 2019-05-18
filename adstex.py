@@ -13,6 +13,7 @@ import os
 import re
 from argparse import ArgumentParser
 from datetime import date
+from shutil import copyfile
 try:
     from urllib.parse import unquote
 except ImportError:
@@ -27,7 +28,8 @@ __version__ = "0.2.3"
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
-_re_comment = re.compile(r'(?<!\\)%.*(?=\v)')
+_re_comment = re.compile(r'(?<!\\)%.*(?=[\r\n])')
+_re_bib = re.compile(r'\\bibliography{([\w\s/&.:,-]+)}')
 _re_cite = re.compile(r'\\[cC]ite[a-z]{0,7}\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}')
 _re_fayear = re.compile(r'([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})')
 _re_id = {}
@@ -40,10 +42,12 @@ _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
 _database = "astronomy"
 
+# pylint: disable=missing-docstring
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
-    q.session
+    q.session # pylint: disable=pointless-statement
+    # pylint: disable=protected-access
     if "Content-Type" in q._session.headers:
         del q._session.headers["Content-Type"]
     return q
@@ -83,18 +87,23 @@ def _headerize(msg, extraline=True):
     return '{2}{0}\n{1}\n{0}'.format('-'*60, msg, '\n' if extraline else '')
 
 
-def search_keys(files):
+def search_keys(files, find_bib=False):
     if _is_like_string(files):
         files = [files]
+    bib = None
     keys = set()
     for f in files:
         with open(f) as fp:
             text = fp.read()
         text = _re_comment.sub('', text)
+        if find_bib and not bib:
+            m = _re_bib.search(text)
+            bib = [b.strip() + ('' if b.endswith('.bib') else '.bib') \
+                for b in m.groups()[0].split(',')] if m else None
         for m in _re_cite.finditer(text):
             for k in m.groups()[0].split(','):
                 keys.add(k.strip())
-    return keys
+    return keys, bib
 
 
 def format_author(authors, max_char):
@@ -111,9 +120,10 @@ def format_author(authors, max_char):
 
 def format_ads_entry(i, entry, max_char=78):
     title = entry.title[0][:max_char-4] if entry.title else '<no title>'
-    return u'[{}] {} (cited {} times)\n    {}\n    {}'.format(i, entry.bibcode,
-            entry.citation_count, format_author(entry.author, max_char-4),
-            title)
+    return u'[{}] {} (cited {} times)\n    {}\n    {}'.format(
+        i, entry.bibcode, entry.citation_count,
+        format_author(entry.author, max_char-4), title,
+    )
 
 
 def id2bibcode(id_this):
@@ -207,6 +217,7 @@ def entry2bibcode(entry):
 
 
 def update_bib(b1, b2):
+    # pylint: disable=protected-access
     b1._entries_dict.clear()
     b2._entries_dict.clear()
     b1.entries_dict.update(b2.entries_dict)
@@ -217,18 +228,36 @@ def update_bib(b1, b2):
 def main():
     parser = ArgumentParser()
     parser.add_argument('files', metavar='TEX', nargs='+', help='tex files to search citation keys')
-    parser.add_argument('-o', '--output', metavar='BIB', required=True, help='main bibtex file; new entries will be added to this file, existing entries may be updated')
+    parser.add_argument('-o', '--output', metavar='BIB', help='main bibtex file; new entries will be added to this file, existing entries may be updated')
     parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files that contain existing references (read-only)')
     parser.add_argument('--no-update', dest='update', action='store_false', help='for existing entries, do not check ADS for updates')
-    parser.add_argument('--force-update', dest='force_update', action='store_true', help='for all existing entries, overwrite with the latest version from ADS')
-    parser.add_argument('--include-physics', dest='include_physics', action='store_true', help='include physics database when searching ADS')
+    parser.add_argument('--force-regenerate', action='store_true', help='for all existing entries, regenerate the bibtex with the latest version from ADS if found')
+    parser.add_argument('--include-physics', action='store_true', help='include physics database when searching ADS')
+    parser.add_argument('--no-backup', dest='backup', action='store_false', help='back up output file if being overwritten')
     parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     if args.include_physics:
         _database = '("astronomy" OR "physics")'
 
-    keys = search_keys(args.files)
+    if len(args.files) == 1 and args.files[0].lower().endswith('.bib'): # bib update mode
+        if args.output or args.other:
+            raise parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Do not specify "output" and "other".')
+        if not args.update:
+            raise parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Must not specify --no-update')
+        keys = None
+        args.output = args.files[0]
+
+    elif args.output: # bib output is specified
+        keys, _ = search_keys(args.files, find_bib=False)
+
+    else: # bib output is missing, auto-identify
+        keys, bib = search_keys(args.files, find_bib=True)
+        args.output = bib.pop(0)
+        if args.other:
+            args.other.extend(bib)
+        else:
+            args.other = bib
 
     if os.path.isfile(args.output):
         with open(args.output) as fp:
@@ -242,6 +271,9 @@ def main():
             with open(f) as fp:
                 bib_other = update_bib(bib_other, bibtexparser.load(fp, parser=get_bparser()))
 
+    if keys is None: # bib update mode
+        keys = list(bib.entries_dict)
+
     not_found = set()
     to_retrieve = set()
     all_entries = defaultdict(list)
@@ -253,7 +285,7 @@ def main():
                     bibcode_new = entry2bibcode(bib.entries_dict[key])
                     if bibcode_new:
                         all_entries[bibcode_new].append(key)
-                        if bibcode_new != bibcode or args.force_update:
+                        if bibcode_new != bibcode or args.force_regenerate:
                             to_retrieve.add(bibcode_new)
                             print('{}: UPDATE => {}'.format(key, bibcode_new))
                             continue
@@ -261,7 +293,7 @@ def main():
                 continue
 
             if key in bib_other.entries_dict:
-                print('{}: FOUND IN OTHER REFS, IGNORED'.format(key))
+                print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
                 continue
 
             bibcode = find_bibcode(key)
@@ -293,6 +325,8 @@ def main():
             entry['ID'] = all_entries[entry['ID']][0]
         bib = update_bib(bib, bib_new)
         bib_dump_str = bibtexparser.dumps(bib).encode('utf8')
+        if args.backup and os.path.isfile(args.output):
+            copyfile(args.output, args.output + '.bak')
         with open(args.output, 'wb') as fp:
             fp.write(bib_dump_str)
 
