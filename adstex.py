@@ -22,7 +22,7 @@ from builtins import input
 import ads
 import bibtexparser
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
