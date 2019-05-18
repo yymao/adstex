@@ -27,6 +27,7 @@ __version__ = "0.2.3"
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
+_re_comment = re.compile(r'(?<!\\)%.*(?=\v)')
 _re_cite = re.compile(r'\\[cC]ite[a-z]{0,7}\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}')
 _re_fayear = re.compile(r'([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})')
 _re_id = {}
@@ -89,6 +90,7 @@ def search_keys(files):
     for f in files:
         with open(f) as fp:
             text = fp.read()
+        text = _re_comment.sub('', text)
         for m in _re_cite.finditer(text):
             for k in m.groups()[0].split(','):
                 keys.add(k.strip())
