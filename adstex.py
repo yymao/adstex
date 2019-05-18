@@ -259,6 +259,12 @@ def main():
         else:
             args.other = bib
 
+        msg = 'Auto-identifying bibtex files...\n'
+        msg += 'Main bibtex source (output file): {}\n'.format(args.output)
+        if args.other:
+            msg += 'Additional bibtex sources: {}\n'.format(', '.join(args.other))
+        print(_headerize(msg))
+
     if os.path.isfile(args.output):
         with open(args.output) as fp:
             bib = bibtexparser.load(fp, parser=get_bparser())
