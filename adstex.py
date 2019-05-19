@@ -295,33 +295,33 @@ def main():
     not_found = set()
     to_retrieve = set()
     all_entries = defaultdict(list)
-    try:
-        for key in keys:
-            if key in bib.entries_dict:
-                if args.update:
-                    bibcode = extract_bibcode(bib.entries_dict[key])
-                    bibcode_new = entry2bibcode(bib.entries_dict[key])
-                    if bibcode_new:
-                        all_entries[bibcode_new].append(key)
-                        if bibcode_new != bibcode or args.force_regenerate:
-                            to_retrieve.add(bibcode_new)
-                            print('{}: UPDATE => {}'.format(key, bibcode_new))
-                            continue
-                print('{}: EXISTING'.format(key))
-                continue
 
-            if key in bib_other.entries_dict:
-                print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
-                continue
+    for key in keys:
+        if key in bib.entries_dict:
+            if args.update:
+                bibcode = extract_bibcode(bib.entries_dict[key])
+                bibcode_new = entry2bibcode(bib.entries_dict[key])
+                if bibcode_new:
+                    all_entries[bibcode_new].append(key)
+                    if bibcode_new != bibcode or args.force_regenerate:
+                        to_retrieve.add(bibcode_new)
+                        print('{}: UPDATE => {}'.format(key, bibcode_new))
+                        continue
+            print('{}: EXISTING'.format(key))
+            continue
 
-            bibcode = find_bibcode(key)
-            if bibcode:
-                to_retrieve.add(bibcode)
-                all_entries[bibcode].append(key)
-                print('{}: NEW ENTRY => {}'.format(key, bibcode))
-            else:
-                not_found.add(key)
-                print('{}: NOT FOUND'.format(key))
+        if key in bib_other.entries_dict:
+            print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
+            continue
+
+        bibcode = find_bibcode(key)
+        if bibcode:
+            to_retrieve.add(bibcode)
+            all_entries[bibcode].append(key)
+            print('{}: NEW ENTRY => {}'.format(key, bibcode))
+        else:
+            not_found.add(key)
+            print('{}: NOT FOUND'.format(key))
     except KeyboardInterrupt:
         print()
 
@@ -365,4 +365,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(_headerize("Abort! adstex interupted by a keyboard signal!"))
