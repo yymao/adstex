@@ -20,6 +20,8 @@ except ImportError:
     from urllib import unquote
 from collections import defaultdict
 from builtins import input
+from distutils.version import StrictVersion
+import requests
 import ads
 import bibtexparser
 
@@ -337,6 +339,19 @@ def main():
             fp.write(bib_dump_str)
 
     print(_headerize('Done!'))
+
+    # check version
+    try:
+        latest_version = StrictVersion(requests.get(
+            'https://pypi.python.org/pypi/adstex/json').json()['info']['version'])
+    except (requests.RequestException, KeyError, ValueError):
+        pass
+    else:
+        if latest_version > StrictVersion(__version__):
+            msg = 'A newer version of adstex (v{}) is now available!\n'.format(latest_version)
+            msg += 'Please consider updating it by running:\n\n'
+            msg += 'pip install adstex=={}'.format(latest_version)
+            print(_headerize(msg))
 
 
 if __name__ == "__main__":
