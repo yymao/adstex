@@ -4,8 +4,9 @@
 Tried of copying and pasting bibtex entries?
 Here's a new way to manage your bibtex entries --- do not manage them!
 
-`adstex` automatically identifies all citation keys in your TeX source files
-and use NASA's [Astrophysics Data System](https://ui.adsabs.harvard.edu/) (ADS)
+`adstex` automatically identifies all citation keys (e.g., identifiers, author+year)
+in your TeX source files and use
+NASA's [Astrophysics Data System](https://ui.adsabs.harvard.edu/) (ADS)
 to generate corresponding bibtex entries!
 
 
@@ -71,25 +72,34 @@ _Yes, simple as that._
 ## Usage
 
 Once you finish the paper (_sorry, can't help with that!_), simply run `adstex`
-with the following command:
+with the following command (_Internet connection is needed for `adstex` to work._):
 
 ```bash
-adstex input_file1.tex [input_file2.tex [...]] -o output_references.bib
+adstex your_tex_source.tex
 ```
 
-- You can provide multiple TeX source files (`input_file1.tex` ...) at once.
-Internet connection is needed for `adstex` to work.
+`adstex` will automatically build the bibtex files, and write to the bibtex
+source that you specified in your tex source file.
+
+- If you want to have more control on the output file, use the `-o` option:
+  ```bash
+  adstex your_tex_source.tex -o your_bib_source.bib
+  ```
+  Once `adstex` is done, it will write all bibtex entries in the file
+  that you specified with the `-o` option.
+
+- You can also provide multiple TeX source files at once:
+  ```bash
+  adstex your_tex_source1.tex [your_tex_source2.tex [...]] -o your_bib_source.bib
+  ```
 
 - For citation keys that are arXiv IDs, ADS bibcodes, or DOIs,
-`adstex` will automatically find the cooresponding bibtex entries.
+  `adstex` will automatically find the cooresponding bibtex entries.
 
 - For first author + year citation keys, `adstex` will search on NASA ADS and
-provide you a list of candidate papers to select from.
-If you don't see the paper you are looking for, you can
-directly enter an ADS bibcode or arXiv ID when prompted.
-
-- Once `adstex` is done, it will write all bibtex entries in the file
-that you specified with the `-o` option.
+  provide you a list of candidate papers to select from.
+  If you don't see the paper you are looking for, you can
+  directly enter an ADS bibcode or arXiv ID when prompted.
 
 - You can also find a complete option list by running:
   ```bash
