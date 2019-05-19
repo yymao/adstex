@@ -75,13 +75,15 @@ Once you finish the paper (_sorry, can't help with that!_), simply run `adstex`
 with the following command (_Internet connection is needed for `adstex` to work._):
 
 ```bash
+# Note: if you are using version 0.2.x, please add the -o option. See below.
+
 adstex your_tex_source.tex
 ```
 
 `adstex` will automatically build the bibtex files, and write to the bibtex
 source that you specified in your tex source file.
 
-- If you want to have more control on the output file, use the `-o` option:
+- If you want to have more control on the output file (or if you are using adstex v0.2.x), use the `-o` option:
   ```bash
   adstex your_tex_source.tex -o your_bib_source.bib
   ```
