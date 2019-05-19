@@ -244,9 +244,11 @@ def main():
 
     if len(args.files) == 1 and args.files[0].lower().endswith('.bib'): # bib update mode
         if args.output or args.other:
-            raise parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Do not specify "output" and "other".')
+            parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Do not specify "output" and "other".')
         if not args.update:
-            raise parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Must not specify --no-update')
+            parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Must not specify --no-update')
+        if not os.path.isfile(args.files[0]):
+            parser.error('Cannot locate input bib file {}'.format(args.files[0]))
         keys = None
         args.output = args.files[0]
 
@@ -255,6 +257,8 @@ def main():
 
     else: # bib output is missing, auto-identify
         keys, bib = search_keys(args.files, find_bib=True)
+        if not bib:
+            parser.error('Cannot identify bibtex file from the tex source. Use -o to specify a bibtex file as output.')
         args.output = bib.pop(0)
         if args.other:
             args.other.extend(bib)
