@@ -1,6 +1,6 @@
 """
-Find all citation keys in your LaTeX documents and search NASA ADS
-to generate corresponding bibtex entries.
+adstex: Automated generation of NASA ADS bibtex entries
+from citation keys (identifiers, author+year) in your TeX source files.
 
 Project website: https://github.com/yymao/adstex
 
