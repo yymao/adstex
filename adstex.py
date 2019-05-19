@@ -25,7 +25,7 @@ import requests
 import ads
 import bibtexparser
 
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -322,8 +322,6 @@ def main():
         else:
             not_found.add(key)
             print('{}: NOT FOUND'.format(key))
-    except KeyboardInterrupt:
-        print()
 
     if not_found:
         print(_headerize('Please check the following keys'))
