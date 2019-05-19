@@ -100,8 +100,14 @@ def search_keys(files, find_bib=False):
         text = _re_comment.sub('', text)
         if find_bib and not bib:
             m = _re_bib.search(text)
-            bib = [b.strip() + ('' if b.endswith('.bib') else '.bib') \
-                for b in m.groups()[0].split(',')] if m else None
+            if m:
+                dirpath = os.path.dirname(f)
+                bib = []
+                for b in m.groups()[0].split(','):
+                    b = b.strip()
+                    if not b.lower().endswith('.bib'):
+                        b += '.bib'
+                    bib.append(os.path.join(dirpath, b))
         for m in _re_cite.finditer(text):
             for k in m.groups()[0].split(','):
                 keys.add(k.strip())
