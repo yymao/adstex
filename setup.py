@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-Find all citation keys in your LaTeX documents and search NASA ADS
-to generate corresponding bibtex entries.
+adstex: Automated generation of NASA ADS bibtex entries
+from citation keys (identifiers, author+year) in your TeX source files.
 
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2018 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2019 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 
@@ -45,7 +45,7 @@ setup(
     ],
     keywords='bibtex ads',
     py_modules=[_name],
-    install_requires=['future','ads>=0.12.3','bibtexparser>=0.6.2'],
+    install_requires=['future', 'ads>=0.12.3', 'bibtexparser>=0.6.2'],
     entry_points={
         'console_scripts': [
             'adstex=adstex:main',
