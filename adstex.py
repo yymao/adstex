@@ -25,7 +25,7 @@ import requests
 import ads
 import bibtexparser
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -351,7 +351,9 @@ def main():
     # check version
     try:
         latest_version = StrictVersion(requests.get(
-            'https://pypi.python.org/pypi/adstex/json').json()['info']['version'])
+            'https://pypi.python.org/pypi/adstex/json',
+            timeout=0.1,
+        ).json()['info']['version'])
     except (requests.RequestException, KeyError, ValueError):
         pass
     else:
