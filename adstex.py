@@ -351,7 +351,9 @@ def main():
     # check version
     try:
         latest_version = StrictVersion(requests.get(
-            'https://pypi.python.org/pypi/adstex/json').json()['info']['version'])
+            'https://pypi.python.org/pypi/adstex/json',
+            timeout=0.1,
+        ).json()['info']['version'])
     except (requests.RequestException, KeyError, ValueError):
         pass
     else:
