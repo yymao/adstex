@@ -241,6 +241,7 @@ def main():
     parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files that contain existing references (read-only)')
     parser.add_argument('--no-update', dest='update', action='store_false', help='for existing entries, do not check ADS for updates')
     parser.add_argument('--force-regenerate', action='store_true', help='for all existing entries, regenerate the bibtex with the latest version from ADS if found')
+    parser.add_argument('--merge-other', action='store_false', help='merge the entries from other bibtex files')
     parser.add_argument('--include-physics', action='store_true', help='include physics database when searching ADS')
     parser.add_argument('--no-backup', dest='backup', action='store_false', help='back up output file if being overwritten')
     parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
@@ -313,7 +314,21 @@ def main():
             continue
 
         if key in bib_other.entries_dict:
-            print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
+            if args.merge_other:
+                if args.update:
+                    bibcode = extract_bibcode(bib_other.entries_dict[key])
+                    bibcode_new = entry2bibcode(bib_other.entries_dict[key])
+                    if bibcode_new:
+                        all_entries[bibcode_new].append(key)
+                        if bibcode_new != bibcode or args.force_regenerate:
+                            to_retrieve.add(bibcode_new)
+                            print('{}: FOUND IN OTHER BIB SOURCE, UPDATE => {}'.format(key, bibcode_new))
+                            continue
+                bib.entries_dict[key] = bib_other.entries_dict[key]
+                bib.entries = list(bib.entries_dict.values())
+                print('{}: FOUND IN OTHER BIB SOURCE, MERGED'.format(key))
+            else:
+                print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
             continue
 
         bibcode = find_bibcode(key)
