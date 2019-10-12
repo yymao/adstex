@@ -300,7 +300,8 @@ def main():
     all_entries = defaultdict(list)
 
     for key in keys:
-        if key in bib.entries_dict:
+        if key in bib.entries_dict or (
+                args.merge_other and key in bib_other.entries_dict):
             if args.update:
                 bibcode = extract_bibcode(bib.entries_dict[key])
                 bibcode_new = entry2bibcode(bib.entries_dict[key])
@@ -308,27 +309,21 @@ def main():
                     all_entries[bibcode_new].append(key)
                     if bibcode_new != bibcode or args.force_regenerate:
                         to_retrieve.add(bibcode_new)
-                        print('{}: UPDATE => {}'.format(key, bibcode_new))
-                        continue
-            print('{}: EXISTING'.format(key))
-            continue
-
-        if key in bib_other.entries_dict:
-            if args.merge_other:
-                if args.update:
-                    bibcode = extract_bibcode(bib_other.entries_dict[key])
-                    bibcode_new = entry2bibcode(bib_other.entries_dict[key])
-                    if bibcode_new:
-                        all_entries[bibcode_new].append(key)
-                        if bibcode_new != bibcode or args.force_regenerate:
-                            to_retrieve.add(bibcode_new)
-                            print('{}: FOUND IN OTHER BIB SOURCE, UPDATE => {}'.format(key, bibcode_new))
-                            continue
+                        print('{}:{} UPDATE => {}'.format(
+                            key,
+                            '' if key in bib.entries_dict else 'FOUND IN SECONDARY BIB SOURCES,',
+                            bibcode_new,
+                        ))
+            elif key in bib.entries_dict:
+                print('{}: EXISTING'.format(key))
+            else:
                 bib.entries_dict[key] = bib_other.entries_dict[key]
                 bib.entries = list(bib.entries_dict.values())
                 print('{}: FOUND IN OTHER BIB SOURCE, MERGED'.format(key))
-            else:
-                print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
+            continue
+
+        if key in bib_other.entries_dict:
+            print('{}: FOUND IN OTHER BIB SOURCE, IGNORED'.format(key))
             continue
 
         bibcode = find_bibcode(key)
