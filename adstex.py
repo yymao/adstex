@@ -248,7 +248,7 @@ def main():
     args = parser.parse_args()
 
     if args.include_physics:
-        global _database
+        global _database  # pylint: disable=global-statement
         _database = '("astronomy" OR "physics")'
 
     if len(args.files) == 1 and args.files[0].lower().endswith('.bib'):  # bib update mode
