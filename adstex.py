@@ -25,7 +25,7 @@ import requests
 import ads
 import bibtexparser
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -46,9 +46,10 @@ _database = "astronomy"
 
 # pylint: disable=missing-docstring
 
+
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
-    q.session # pylint: disable=pointless-statement
+    q.session  # pylint: disable=pointless-statement
     # pylint: disable=protected-access
     if "Content-Type" in q._session.headers:
         del q._session.headers["Content-Type"]
@@ -86,7 +87,7 @@ def _is_like_string(s):
 
 
 def _headerize(msg, extraline=True):
-    return '{2}{0}\n{1}\n{0}'.format('-'*60, msg, '\n' if extraline else '')
+    return '{2}{0}\n{1}\n{0}'.format('-' * 60, msg, '\n' if extraline else '')
 
 
 def search_keys(files, find_bib=False):
@@ -117,7 +118,7 @@ def search_keys(files, find_bib=False):
 def format_author(authors, max_char):
     s = authors[0]
     for author in authors[1:]:
-        if len(s) + len(author) + 2 < max_char-7:
+        if len(s) + len(author) + 2 < max_char - 7:
             s = u'{}; {}'.format(s, author)
         else:
             break
@@ -127,10 +128,10 @@ def format_author(authors, max_char):
 
 
 def format_ads_entry(i, entry, max_char=78):
-    title = entry.title[0][:max_char-4] if entry.title else '<no title>'
+    title = entry.title[0][:max_char - 4] if entry.title else '<no title>'
     return u'[{}] {} (cited {} times)\n    {}\n    {}'.format(
         i, entry.bibcode, entry.citation_count,
-        format_author(entry.author, max_char-4), title,
+        format_author(entry.author, max_char - 4), title,
     )
 
 
@@ -152,9 +153,9 @@ def authoryear2bibcode(author, year, key):
     if entries:
         total = len(entries)
         print(_headerize('Choose one entry from below for "{}" (most cited at the end)'.format(key)))
-        print(u'\n\n'.join(format_ads_entry(total-i, e) for i, e in enumerate(reversed(entries))))
+        print(u'\n\n'.join(format_ads_entry(total - i, e) for i, e in enumerate(reversed(entries))))
         print(_headerize('Choose one entry from above for "{}"'.format(key, extraline=False)))
-        choices = list(range(0, len(entries)+1))
+        choices = list(range(0, len(entries) + 1))
         c = -1
         while c not in choices:
             c = input('ENTER choice (if no matches, ENTER 0 to skip or ENTER an identifier): ')
@@ -167,7 +168,7 @@ def authoryear2bibcode(author, year, key):
                 pass
         if not c:
             return
-        return entries[c-1].bibcode
+        return entries[c - 1].bibcode
     elif ' ' not in author:
         new_author = _match_name_prefix(author)
         if new_author:
@@ -240,15 +241,17 @@ def main():
     parser.add_argument('-r', '--other', nargs='+', metavar='BIB', help='other bibtex files that contain existing references (read-only)')
     parser.add_argument('--no-update', dest='update', action='store_false', help='for existing entries, do not check ADS for updates')
     parser.add_argument('--force-regenerate', action='store_true', help='for all existing entries, regenerate the bibtex with the latest version from ADS if found')
+    parser.add_argument('--merge-other', action='store_true', help='merge the entries from other bibtex files')  # thanks to syrte for adding this option
     parser.add_argument('--include-physics', action='store_true', help='include physics database when searching ADS')
     parser.add_argument('--no-backup', dest='backup', action='store_false', help='back up output file if being overwritten')
     parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     if args.include_physics:
+        global _database  # pylint: disable=global-statement
         _database = '("astronomy" OR "physics")'
 
-    if len(args.files) == 1 and args.files[0].lower().endswith('.bib'): # bib update mode
+    if len(args.files) == 1 and args.files[0].lower().endswith('.bib'):  # bib update mode
         if args.output or args.other:
             parser.error('Input file is a bib file, not tex file. This will enter bib update mode. Do not specify "output" and "other".')
         if not args.update:
@@ -258,10 +261,10 @@ def main():
         keys = None
         args.output = args.files[0]
 
-    elif args.output: # bib output is specified
+    elif args.output:  # bib output is specified
         keys, _ = search_keys(args.files, find_bib=False)
 
-    else: # bib output is missing, auto-identify
+    else:  # bib output is missing, auto-identify
         keys, bib = search_keys(args.files, find_bib=True)
         if not bib:
             parser.error('Cannot identify bibtex file from the tex source. Use -o to specify a bibtex file as output.')
@@ -289,7 +292,7 @@ def main():
             with open(f) as fp:
                 bib_other = update_bib(bib_other, bibtexparser.load(fp, parser=get_bparser()))
 
-    if keys is None: # bib update mode
+    if keys is None:  # bib update mode
         keys = list(bib.entries_dict)
 
     not_found = set()
@@ -297,7 +300,8 @@ def main():
     all_entries = defaultdict(list)
 
     for key in keys:
-        if key in bib.entries_dict:
+        if key in bib.entries_dict or (
+                args.merge_other and key in bib_other.entries_dict):
             if args.update:
                 bibcode = extract_bibcode(bib.entries_dict[key])
                 bibcode_new = entry2bibcode(bib.entries_dict[key])
@@ -305,9 +309,17 @@ def main():
                     all_entries[bibcode_new].append(key)
                     if bibcode_new != bibcode or args.force_regenerate:
                         to_retrieve.add(bibcode_new)
-                        print('{}: UPDATE => {}'.format(key, bibcode_new))
-                        continue
-            print('{}: EXISTING'.format(key))
+                        print('{}:{} UPDATE => {}'.format(
+                            key,
+                            '' if key in bib.entries_dict else 'FOUND IN SECONDARY BIB SOURCES,',
+                            bibcode_new,
+                        ))
+            elif key in bib.entries_dict:
+                print('{}: EXISTING'.format(key))
+            else:
+                bib.entries_dict[key] = bib_other.entries_dict[key]
+                bib.entries = list(bib.entries_dict.values())
+                print('{}: FOUND IN OTHER BIB SOURCE, MERGED'.format(key))
             continue
 
         if key in bib_other.entries_dict:
