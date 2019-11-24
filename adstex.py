@@ -161,7 +161,7 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
             try:
                 return next(s).bibcode
             except StopIteration:
-                return
+                pass
 
 
 def authoryear2bibcode(author, year, key):
