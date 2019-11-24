@@ -35,7 +35,9 @@ _this_cent = date.today().year // 100
 
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
 _re_bib = re.compile(r"\\(?:no)?bibliography{([\w\s/&.:,-]+)}")
-_re_cite = re.compile(r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}")
+_re_cite = re.compile(
+    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}"
+)
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
 _re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+")
