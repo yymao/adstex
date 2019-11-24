@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Cache Python packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
