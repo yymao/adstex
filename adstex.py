@@ -151,9 +151,11 @@ def format_ads_entry(i, entry, max_char=78):
     )
 
 
-def id2bibcode(id_this):
-    for id_type in ("bibcode", "arxiv", "doi"):
-        m = _re_id[id_type].match(id_this)
+def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
+    if _is_like_string(possible_id_types):
+        possible_id_types = [possible_id_types]
+    for id_type in possible_id_types:
+        m = _re_id[id_type].search(id_this)
         if m:
             s = fixedAdsSearchQuery(q=":".join((id_type, m.group())), fl=["bibcode"])
             try:
