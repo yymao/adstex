@@ -28,7 +28,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
