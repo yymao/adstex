@@ -246,26 +246,17 @@ def extract_bibcode(entry):
 
 
 def entry2bibcode(entry):
-    if "adsurl" in entry:
-        s = fixedAdsSearchQuery(bibcode=extract_bibcode(entry), fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
-
-    if "doi" in entry:
-        s = fixedAdsSearchQuery(doi=entry["doi"], fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
-
-    if "eprint" in entry:
-        s = fixedAdsSearchQuery(arxiv=entry["eprint"], fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
+    for field_name, possible_id_types in (
+        ("adsurl", "bibcode"),
+        ("doi", "doi"),
+        ("eprint", "arxiv"),
+        ("url", ("bibcode", "doi", "arxiv")),
+        ("page", "arxiv"),
+    ):
+        if field_name in entry:
+            id_this = id2bibcode(unquote(entry[field_name]), possible_id_types)
+            if id_this:
+                return id_this
 
 
 def update_bib(b1, b2):
