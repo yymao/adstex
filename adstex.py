@@ -391,11 +391,16 @@ def main():
         key_exists = key in bib.entries_dict
         key_exists_in_others = key in bib_other.entries_dict
 
-        if (key_exists and args.update) or (
-            key_exists_in_others and args.merge_other and args.update
-        ):
-            bibcode = extract_bibcode(bib.entries_dict[key])
-            bibcode_new = entry2bibcode(bib.entries_dict[key])
+        if args.update:
+            if key_exists:
+                bibcode = extract_bibcode(bib.entries_dict[key])
+                bibcode_new = entry2bibcode(bib.entries_dict[key])
+            elif key_exists_in_others and args.merge_other:
+                bibcode = extract_bibcode(bib_other.entries_dict[key])
+                bibcode_new = entry2bibcode(bib_other.entries_dict[key])
+            else:
+                bibcode_new = None
+
             if bibcode_new:
                 all_entries[bibcode_new].append(key)
                 if bibcode_new != bibcode or args.force_regenerate:
