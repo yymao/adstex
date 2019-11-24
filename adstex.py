@@ -240,7 +240,9 @@ def find_bibcode(key):
 
 
 def extract_bibcode(entry):
-    return unquote(entry.get("adsurl", "").rpartition("/")[-1])
+    m = _re_id["bibcode"].search(unquote(entry.get("adsurl", "")))
+    if m:
+        return m.group()
 
 
 def entry2bibcode(entry):
