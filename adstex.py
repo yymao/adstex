@@ -253,7 +253,7 @@ def entry2bibcode(entry):
         ("doi", "doi"),
         ("eprint", "arxiv"),
         ("url", ("bibcode", "doi", "arxiv")),
-        ("page", "arxiv"),
+        ("pages", "arxiv"),
     ):
         if field_name in entry:
             id_this = id2bibcode(unquote(entry[field_name]), possible_id_types)
