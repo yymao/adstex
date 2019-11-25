@@ -40,9 +40,9 @@ _re_cite = re.compile(
 )
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
-_re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+")
-_re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]$")
-_re_id["arxiv"] = re.compile(r"\b(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})")
+_re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b")
+_re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b")
+_re_id["arxiv"] = re.compile(r"\b(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})\b")
 
 _name_prefix = (
     "van",
