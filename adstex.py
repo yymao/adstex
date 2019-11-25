@@ -28,19 +28,21 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
 _re_bib = re.compile(r"\\(?:no)?bibliography{([\w\s/&.:,-]+)}")
-_re_cite = re.compile(r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}")
+_re_cite = re.compile(
+    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}"
+)
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
-_re_id["doi"] = re.compile(r"10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+")
-_re_id["bibcode"] = re.compile(r"\d{4}\D\S{13}[A-Z.:]$")
-_re_id["arxiv"] = re.compile(r"(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})")
+_re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b")
+_re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b")
+_re_id["arxiv"] = re.compile(r"\b(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})\b")
 
 _name_prefix = (
     "van",
@@ -151,15 +153,17 @@ def format_ads_entry(i, entry, max_char=78):
     )
 
 
-def id2bibcode(id_this):
-    for id_type in ("bibcode", "arxiv", "doi"):
-        m = _re_id[id_type].match(id_this)
+def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
+    if _is_like_string(possible_id_types):
+        possible_id_types = [possible_id_types]
+    for id_type in possible_id_types:
+        m = _re_id[id_type].search(id_this)
         if m:
             s = fixedAdsSearchQuery(q=":".join((id_type, m.group())), fl=["bibcode"])
             try:
                 return next(s).bibcode
             except StopIteration:
-                return
+                pass
 
 
 def authoryear2bibcode(author, year, key):
@@ -238,30 +242,23 @@ def find_bibcode(key):
 
 
 def extract_bibcode(entry):
-    return unquote(entry.get("adsurl", "").rpartition("/")[-1])
+    m = _re_id["bibcode"].search(unquote(entry.get("adsurl", "")))
+    if m:
+        return m.group()
 
 
 def entry2bibcode(entry):
-    if "adsurl" in entry:
-        s = fixedAdsSearchQuery(bibcode=extract_bibcode(entry), fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
-
-    if "doi" in entry:
-        s = fixedAdsSearchQuery(doi=entry["doi"], fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
-
-    if "eprint" in entry:
-        s = fixedAdsSearchQuery(arxiv=entry["eprint"], fl=["bibcode"])
-        try:
-            return next(s).bibcode
-        except StopIteration:
-            pass
+    for field_name, possible_id_types in (
+        ("adsurl", "bibcode"),
+        ("doi", "doi"),
+        ("eprint", "arxiv"),
+        ("url", ("bibcode", "doi", "arxiv")),
+        ("pages", "arxiv"),
+    ):
+        if field_name in entry:
+            id_this = id2bibcode(unquote(entry[field_name]), possible_id_types)
+            if id_this:
+                return id_this
 
 
 def update_bib(b1, b2):
@@ -408,7 +405,7 @@ def main():
                     print(
                         "{}:{} UPDATE => {}".format(
                             key,
-                            "" if key_exists else "FOUND IN SECONDARY BIB SOURCES,",
+                            "" if key_exists else " FOUND IN SECONDARY BIB SOURCES,",
                             bibcode_new,
                         )
                     )
