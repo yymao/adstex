@@ -405,7 +405,7 @@ def main():
                     print(
                         "{}:{} UPDATE => {}".format(
                             key,
-                            "" if key_exists else "FOUND IN SECONDARY BIB SOURCES,",
+                            "" if key_exists else " FOUND IN SECONDARY BIB SOURCES,",
                             bibcode_new,
                         )
                     )
