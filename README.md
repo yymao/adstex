@@ -177,7 +177,7 @@ source that you specified in your tex source file.
 
    First of all, thank you :).
 
-   `adstex` won't exsit without NASA's ADS, so please do acknowledge them by
+   `adstex` won't exist without NASA's ADS, so please do acknowledge them by
    adding the following to your acknowledgements section:
    ```tex
    This research has made use of NASA's Astrophysics Data System.
