@@ -159,7 +159,7 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
     for id_type in possible_id_types:
         m = _re_id[id_type].search(id_this)
         if m:
-            s = fixedAdsSearchQuery(q="identifier:{}".format(m.group()), fl=["bibcode"])
+            s = fixedAdsSearchQuery(q="identifier:\"{}\"".format(m.group()), fl=["bibcode"])
             try:
                 return next(s).bibcode
             except StopIteration:
