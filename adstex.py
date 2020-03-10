@@ -34,9 +34,9 @@ _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
-_re_bib = re.compile(r"\\(?:no)?bibliography{([^{}]+)}")
+_re_bib = re.compile(r"\\(?:no)?bibliography\*?(?:(?!\n{2,})\s)*{((?:(?!\n{2,})[^{}])+)}")
 _re_cite = re.compile(
-    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?\s*(?:(?<!\\)\[[^\[\]]*?(?<!\\)\]\s*)*{([^{}]+)}",
+    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)\[(?:(?!\n{2,}).)*?(?<!\\)\](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
     re.S,
 )
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
