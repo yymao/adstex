@@ -28,15 +28,16 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.7"
+__version__ = "0.3.8"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
 
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
-_re_bib = re.compile(r"\\(?:no)?bibliography{([\w\s/&.:,-]+)}")
+_re_bib = re.compile(r"\\(?:no)?bibliography{([^{}]+)}")
 _re_cite = re.compile(
-    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?(?:\[.*?\])*{([\w\s/&.:,-]+)}"
+    r"\\(?:bibentry|[cC]ite[a-z]{0,7})\*?\s*(?:(?<!\\)\[[^\[\]]*?(?<!\\)\]\s*)*{([^{}]+)}",
+    re.S,
 )
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
