@@ -9,6 +9,7 @@ in your TeX source files and use
 NASA's [Astrophysics Data System](https://ui.adsabs.harvard.edu/) (ADS)
 to generate corresponding bibtex entries!
 
+`adstex` was featured in an ADS blog post "[User-Developed Tools for ADS](http://adsabs.github.io/blog/3rd-party-tools)"!
 
 ## Features
 
@@ -175,7 +176,7 @@ source that you specified in your tex source file.
 
 6. **`adstex` saves me so much time. How do I acknowledge it?**
 
-   First of all, thank you :).
+   First of all, thank you :)
 
    `adstex` won't exist without NASA's ADS, so please do acknowledge them by
    adding the following to your acknowledgements section:
@@ -184,7 +185,7 @@ source that you specified in your tex source file.
    ```
    (_Note: `adstex` is not affiliated with nor endorsed by NASA's ADS._)
 
-   Then, if you would like to also acknowledge `adstex`, you can adding
+   Then, if you would like to also acknowledge `adstex`, you can add
    the following to your acknowledgements section:
    ```tex
    This research has made use of adstex (\url{https://github.com/yymao/adstex}).
