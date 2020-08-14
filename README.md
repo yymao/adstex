@@ -2,7 +2,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/adstex.svg)](https://pypi.python.org/pypi/adstex)
 
 Tried of copying and pasting bibtex entries?
-Here's a new way to manage your bibtex entries --- do not manage them!
+Here's a new way to manage your bibtex entries — do not manage them!
 
 `adstex` automatically identifies all citation keys (e.g., identifiers, author+year)
 in your TeX source files and use
@@ -23,7 +23,7 @@ to generate corresponding bibtex entries!
   For example, `adstex` would work with all of the following:
   ```tex
   \citet{1705.03888}
-  \citep[e.g.,]{Mao:2015, White2018}
+  \citep[e.g.,][]{Mao:2015, White2018}
   \citealt{10.1093/mnras/stx3111, 2017arXiv170909665M}
   ```
 
