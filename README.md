@@ -1,4 +1,5 @@
 # adstex
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/adstex.svg)](https://anaconda.org/conda-forge/adstex)
 [![PyPI version](https://img.shields.io/pypi/v/adstex.svg)](https://pypi.python.org/pypi/adstex)
 
 Tried of copying and pasting bibtex entries?
@@ -45,10 +46,17 @@ to generate corresponding bibtex entries!
 
 ### Install `adstex`
 
+You can install `adstex` from conda-forge
+
+```bash
+conda install adstex --channel conda-forge
+```
+
+Or from PyPI
+
 ```bash
 pip install adstex
 ```
-_Yes, simple as that._
 
 ### Set up an ADS API token
 
