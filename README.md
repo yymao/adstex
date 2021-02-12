@@ -2,7 +2,7 @@
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/adstex.svg)](https://anaconda.org/conda-forge/adstex)
 [![PyPI version](https://img.shields.io/pypi/v/adstex.svg)](https://pypi.python.org/pypi/adstex)
 
-Tried of copying and pasting bibtex entries?
+Tired of copying and pasting bibtex entries?
 Here's a new way to manage your bibtex entries — do not manage them!
 
 `adstex` automatically identifies all citation keys (e.g., identifiers, author+year)
