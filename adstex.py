@@ -28,7 +28,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.8"
+__version__ = "0.3.9"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -163,7 +163,7 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
             s = fixedAdsSearchQuery(q="identifier:\"{}\"".format(m.group()), fl=["bibcode"])
             try:
                 return next(s).bibcode
-            except StopIteration:
+            except (StopIteration, ads.exceptions.APIResponseError):
                 pass
 
 
@@ -193,9 +193,8 @@ def authoryear2bibcode(author, year, key):
             )
         )
         print(
-            _headerize(
-                "Choose one entry from above for <{}>".format(key, extraline=False)
-            )
+            _headerize("Choose one entry from above for <{}>".format(key)),
+            extraline=False,
         )
         choices = list(range(0, len(entries) + 1))
         c = -1
