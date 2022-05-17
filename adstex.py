@@ -163,7 +163,7 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
             s = fixedAdsSearchQuery(q="identifier:\"{}\"".format(m.group()), fl=["bibcode"])
             try:
                 return next(s).bibcode
-            except StopIteration:
+            except (StopIteration, ads.exceptions.APIResponseError):
                 pass
 
 
