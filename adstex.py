@@ -194,7 +194,8 @@ def authoryear2bibcode(author, year, key):
         )
         print(
             _headerize(
-                "Choose one entry from above for <{}>".format(key, extraline=False)
+                "Choose one entry from above for <{}>".format(key),
+                extraline=False,
             )
         )
         choices = list(range(0, len(entries) + 1))
