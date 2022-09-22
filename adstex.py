@@ -16,11 +16,11 @@ from argparse import ArgumentParser
 from builtins import input
 from collections import defaultdict
 from datetime import date
-from distutils.version import StrictVersion
 from shutil import copyfile
 
 import ads
 import bibtexparser
+import packaging.version
 import requests
 
 try:
@@ -469,7 +469,7 @@ def main():
 
     # check version
     try:
-        latest_version = StrictVersion(
+        latest_version = packaging.version.parse(
             requests.get(
                 "https://pypi.python.org/pypi/adstex/json", timeout=0.1,
             ).json()["info"]["version"]
@@ -477,7 +477,7 @@ def main():
     except (requests.RequestException, KeyError, ValueError):
         pass
     else:
-        if latest_version > StrictVersion(__version__):
+        if latest_version > packaging.version.parse(__version__):
             msg = "A newer version of adstex (v{}) is now available!\n".format(
                 latest_version
             )
