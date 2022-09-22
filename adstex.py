@@ -16,11 +16,11 @@ from argparse import ArgumentParser
 from builtins import input
 from collections import defaultdict
 from datetime import date
-from distutils.version import StrictVersion
 from shutil import copyfile
 
 import ads
 import bibtexparser
+import packaging.version
 import requests
 
 try:
@@ -28,7 +28,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.11"
+__version__ = "0.3.12"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -36,7 +36,7 @@ _this_cent = date.today().year // 100
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
 _re_bib = re.compile(r"\\(?:no)?bibliography\*?(?:(?!\n{2,})\s)*{((?:(?!\n{2,})[^{}])+)}")
 _re_cite = re.compile(
-    r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[[<](?:(?!\n{2,}).)*?(?<!\\)[]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
+    r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[\[<](?:(?!\n{2,}).)*?(?<!\\)[\]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
     re.S,
 )
 _re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
@@ -469,7 +469,7 @@ def main():
 
     # check version
     try:
-        latest_version = StrictVersion(
+        latest_version = packaging.version.parse(
             requests.get(
                 "https://pypi.python.org/pypi/adstex/json", timeout=0.1,
             ).json()["info"]["version"]
@@ -477,7 +477,7 @@ def main():
     except (requests.RequestException, KeyError, ValueError):
         pass
     else:
-        if latest_version > StrictVersion(__version__):
+        if latest_version > packaging.version.parse(__version__):
             msg = "A newer version of adstex (v{}) is now available!\n".format(
                 latest_version
             )
