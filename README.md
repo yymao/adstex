@@ -172,7 +172,6 @@ source that you specified in your tex source file.
 
    `adstex` only works with the ADS, and hence the name of this program :)
 
-
 5. **`adstex` seems to run very slowly. Is there any way to speed it up?**
 
    By default, `adstex` check if existing entries have any updates
@@ -181,8 +180,26 @@ source that you specified in your tex source file.
    You can use `--no-update` to turn this feature off,
    so that `adstex` will only look for new entries.
 
+6. **I have different citation keys that point to the same paper in my tex file, 
+   can `adstex` merge and remove the repetitions?**
+   
+   `adstex` will warn you (near the end of its execution) if it detects multiple  
+   keys that point to the same paper. It will list all those citation keys, but 
+   it will *not* merge them automatically. `adstex` never edits the tex source files;
+   hence, you need to update the citation keys in the tex source files manually. 
 
-6. **`adstex` saves me so much time. How do I acknowledge it?**
+7. **Is there a way to use `adstex` with Overleaf?**
+   
+   If you or your institution has an Overleaf subscription, you can use Overleaf's 
+   git or Dropbox integration to fetch the source files to your local machine, 
+   run `adstex` locally, and then push back to Overleaf via git 
+   (in the case of Dropbox, no pushing needed). 
+   
+   If you don't have access to Overleaf's premium features, you can still just 
+   download the tex source file and bib file, run `adstex` locally, and then upload
+   the updated bib file back to Overleaf (tex source file will not be changed by `adstex`). 
+
+8. **`adstex` saves me so much time. How do I acknowledge it?**
 
    First of all, thank you :)
 
