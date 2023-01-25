@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import re
+import warnings
 from argparse import ArgumentParser
 from builtins import input
 from collections import defaultdict
@@ -28,7 +29,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.12"
+__version__ = "0.4.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -60,16 +61,21 @@ _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
 # global configs
 _database = "astronomy"
-
-# pylint: disable=missing-docstring
+_disable_ssl_verification = False
 
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
-    q.session  # pylint: disable=pointless-statement
-    # pylint: disable=protected-access
-    if "Content-Type" in q._session.headers:
-        del q._session.headers["Content-Type"]
+    q.session.headers.pop("Content-Type", None)
+    if _disable_ssl_verification:
+        q.session.verify = False
+    return q
+
+
+def fixedAdsExportQuery(*args, **kwargs):
+    q = ads.ExportQuery(*args, **kwargs)
+    if _disable_ssl_verification:
+        q.session.verify = False
     return q
 
 
@@ -318,6 +324,11 @@ def main():
         help="back up output file if being overwritten",
     )
     parser.add_argument(
+        "--disable-ssl-verification",
+        action="store_true",
+        help="disable SSL verification (it will render your API key vulnerable)",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -327,6 +338,16 @@ def main():
     if args.include_physics:
         global _database
         _database = '("astronomy" OR "physics")'
+
+    if args.disable_ssl_verification:
+        ans = input("You have chosen to disable SSL verification. This will render your API key vulnerable. Do you want to continue? [y/N] ")
+        if ans in ("y", "Y", "yes", "Yes", "YES"):
+            global _disable_ssl_verification
+            _disable_ssl_verification = True
+            warnings.filterwarnings("ignore", "Unverified HTTPS request is being made", Warning)
+        else:
+            print("OK, abort!")
+            return
 
     if len(args.files) == 1 and args.files[0].lower().endswith(
         ".bib"
@@ -454,7 +475,7 @@ def main():
     if to_retrieve:
         print(_headerize("Building new bibtex file, please wait..."))
         bib_new = bibtexparser.loads(
-            ads.ExportQuery(list(to_retrieve), "bibtex").execute(), parser=get_bparser()
+            fixedAdsExportQuery(list(to_retrieve), "bibtex").execute(), parser=get_bparser()
         )
         for entry in bib_new.entries:
             entry["ID"] = all_entries[entry["ID"]][0]
