@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import re
+import warnings
 from argparse import ArgumentParser
 from builtins import input
 from collections import defaultdict
@@ -65,10 +66,16 @@ _disable_ssl_verification = False
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
-    s = q.session
-    s.headers.pop("Content-Type", None)
+    q.session.headers.pop("Content-Type", None)
     if _disable_ssl_verification:
-        s.verify = False
+        q.session.verify = False
+    return q
+
+
+def fixedAdsExportQuery(*args, **kwargs):
+    q = ads.ExportQuery(*args, **kwargs)
+    if _disable_ssl_verification:
+        q.session.verify = False
     return q
 
 
@@ -333,10 +340,14 @@ def main():
         _database = '("astronomy" OR "physics")'
 
     if args.disable_ssl_verification:
-        ans = input("You have chosen to disable SSL verification. This will render your API key vulnerable. Do you want to continue? [y/N]")
+        ans = input("You have chosen to disable SSL verification. This will render your API key vulnerable. Do you want to continue? [y/N] ")
         if ans in ("y", "Y", "yes", "Yes", "YES"):
             global _disable_ssl_verification
             _disable_ssl_verification = True
+            warnings.filterwarnings("ignore", "Unverified HTTPS request is being made to host", Warning)
+        else:
+            print("OK, abort!")
+            return
 
     if len(args.files) == 1 and args.files[0].lower().endswith(
         ".bib"
@@ -464,7 +475,7 @@ def main():
     if to_retrieve:
         print(_headerize("Building new bibtex file, please wait..."))
         bib_new = bibtexparser.loads(
-            ads.ExportQuery(list(to_retrieve), "bibtex").execute(), parser=get_bparser()
+            fixedAdsExportQuery(list(to_retrieve), "bibtex").execute(), parser=get_bparser()
         )
         for entry in bib_new.entries:
             entry["ID"] = all_entries[entry["ID"]][0]
