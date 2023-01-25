@@ -5,7 +5,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2019 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2023 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import, print_function
@@ -58,6 +58,7 @@ _name_prefix = (
 )
 _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
+# global configs
 _database = "astronomy"
 
 # pylint: disable=missing-docstring
@@ -264,7 +265,6 @@ def entry2bibcode(entry):
 
 
 def update_bib(b1, b2):
-    # pylint: disable=protected-access
     b1._entries_dict.clear()
     b2._entries_dict.clear()
     b1.entries_dict.update(b2.entries_dict)
@@ -325,7 +325,7 @@ def main():
     args = parser.parse_args()
 
     if args.include_physics:
-        global _database  # pylint: disable=global-statement
+        global _database
         _database = '("astronomy" OR "physics")'
 
     if len(args.files) == 1 and args.files[0].lower().endswith(
