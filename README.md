@@ -21,7 +21,7 @@ to generate corresponding bibtex entries!
 
 - `adstex` recognizes all variants of the `\cite` commands,
   and works with various styles of citation keys.
-  For example, `adstex` would work with all of the following:
+  For example, `adstex` would work with all the following:
   ```tex
   \citet{1705.03888}
   \citep[e.g.,][]{Mao:2015, White2018}
@@ -105,7 +105,7 @@ source that you specified in your tex source file.
   ```
 
 - For citation keys that are arXiv IDs, ADS bibcodes, or DOIs,
-  `adstex` will automatically find the cooresponding bibtex entries.
+  `adstex` will automatically find the corresponding bibtex entries.
 
 - For first author + year citation keys, `adstex` will search on NASA ADS and
   provide you a list of candidate papers to select from.
@@ -130,7 +130,7 @@ source that you specified in your tex source file.
    identify the first author and year to conduct a search on the ADS.
 
    For compound surnames, your best bets are
-   joinning the words without the spaces (e.g., `\cite{deSitter:1913}`), and
+   joining the words without the spaces (e.g., `\cite{deSitter:1913}`), and
    keeping the hyphens (e.g., `\cite{Boylan-Kolchin:1913}`).
 
    Note that in the event that `adstex` cannot find the correct paper from a
@@ -180,26 +180,40 @@ source that you specified in your tex source file.
    You can use `--no-update` to turn this feature off,
    so that `adstex` will only look for new entries.
 
-6. **I have different citation keys that point to the same paper in my tex file, 
+6. **I have different citation keys that point to the same paper in my tex file,
    can `adstex` merge and remove the repetitions?**
-   
-   `adstex` will warn you (near the end of its execution) if it detects multiple  
-   keys that point to the same paper. It will list all those citation keys, but 
+
+   `adstex` will warn you (near the end of its execution) if it detects multiple
+   keys that point to the same paper. It will list all those citation keys, but
    it will *not* merge them automatically. `adstex` never edits the tex source files;
-   hence, you need to update the citation keys in the tex source files manually. 
+   hence, you need to update the citation keys in the tex source files manually.
 
 7. **Is there a way to use `adstex` with Overleaf?**
-   
-   If you or your institution has an Overleaf subscription, you can use Overleaf's 
-   git or Dropbox integration to fetch the source files to your local machine, 
-   run `adstex` locally, and then push back to Overleaf via git 
-   (in the case of Dropbox, no pushing needed). 
-   
-   If you don't have access to Overleaf's premium features, you can still just 
-   download the tex source file and bib file, run `adstex` locally, and then upload
-   the updated bib file back to Overleaf (tex source file will not be changed by `adstex`). 
 
-8. **`adstex` saves me so much time. How do I acknowledge it?**
+   If you or your institution has an Overleaf subscription, you can use Overleaf's
+   git or Dropbox integration to fetch the source files to your local machine,
+   run `adstex` locally, and then push back to Overleaf via git
+   (in the case of Dropbox, no pushing needed).
+
+   If you don't have access to Overleaf's premium features, you can still just
+   download the tex source file and bib file, run `adstex` locally, and then upload
+   the updated bib file back to Overleaf (tex source file will not be changed by `adstex`).
+
+8. **I got a `SSLCertVerificationError`! How to fix it?**
+
+   This error usually happens when the ADS SSL certification has been updated,
+   but your local SSL certification has not yet. The error should go away once the
+   local certification is updated too.
+
+   With `adstex` 0.4.0+, you can use the `--disable-ssl-verification` option to
+   temporarily disable the verification of SSL certification. This option can be
+   handy if you don't have control of your local SSL certification installation.
+   Note that with this option, your ADS API key may be vulnerable to a
+   man-in-the-middle attack. You can generate new ADS API key on
+   [ADS website](https://ui.adsabs.harvard.edu/user/settings/token) if you think
+   your API key may have been compromise.
+
+9. **`adstex` saves me so much time. How do I acknowledge it?**
 
    First of all, thank you :)
 
