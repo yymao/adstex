@@ -344,7 +344,7 @@ def main():
         if ans in ("y", "Y", "yes", "Yes", "YES"):
             global _disable_ssl_verification
             _disable_ssl_verification = True
-            warnings.filterwarnings("ignore", "Unverified HTTPS request is being made to host", Warning)
+            warnings.filterwarnings("ignore", "Unverified HTTPS request is being made", Warning)
         else:
             print("OK, abort!")
             return
