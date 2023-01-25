@@ -28,7 +28,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.3.12"
+__version__ = "0.4.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -60,16 +60,15 @@ _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
 # global configs
 _database = "astronomy"
-
-# pylint: disable=missing-docstring
+_disable_ssl_verification = False
 
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
-    q.session  # pylint: disable=pointless-statement
-    # pylint: disable=protected-access
-    if "Content-Type" in q._session.headers:
-        del q._session.headers["Content-Type"]
+    s = q.session
+    s.headers.pop("Content-Type", None)
+    if _disable_ssl_verification:
+        s.verify = False
     return q
 
 
@@ -318,6 +317,11 @@ def main():
         help="back up output file if being overwritten",
     )
     parser.add_argument(
+        "--disable-ssl-verification",
+        action="store_true",
+        help="disable SSL verification (it will render your API key vulnerable)",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -327,6 +331,12 @@ def main():
     if args.include_physics:
         global _database
         _database = '("astronomy" OR "physics")'
+
+    if args.disable_ssl_verification:
+        ans = input("You have chosen to disable SSL verification. This will render your API key vulnerable. Do you want to continue? [y/N]")
+        if ans in ("y", "Y", "yes", "Yes", "YES"):
+            global _disable_ssl_verification
+            _disable_ssl_verification = True
 
     if len(args.files) == 1 and args.files[0].lower().endswith(
         ".bib"
