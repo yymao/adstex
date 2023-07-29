@@ -18,6 +18,7 @@ from builtins import input
 from collections import defaultdict
 from datetime import date
 from shutil import copyfile
+from joblib import Parallel, delayed
 
 import ads
 import bibtexparser
@@ -232,6 +233,7 @@ def find_bibcode(key):
     if bibcode:
         return bibcode
 
+def find_bibcode_interactive(key):
     m = _re_fayear.match(key)
     if m:
         fa, y = m.groups()
@@ -329,6 +331,20 @@ def main():
         help="disable SSL verification (it will render your API key vulnerable)",
     )
     parser.add_argument(
+        "--parallel",
+        "-P",
+        action="store_true",
+        help="enable parallel ADS update queries",
+    )
+    parser.add_argument(
+        "--threads",
+        "-N",
+        action="store",
+        default=8,
+        type=int,
+        help="number of parallel ADS update queries (default: 8)",
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -403,11 +419,12 @@ def main():
     if keys is None:  # bib update mode
         keys = list(bib.entries_dict)
 
+    interactive = set()
     not_found = set()
     to_retrieve = set()
     all_entries = defaultdict(list)
 
-    for key in keys:
+    def update(key):
         key_exists = key in bib.entries_dict
         key_exists_in_others = key in bib_other.entries_dict
 
@@ -432,30 +449,46 @@ def main():
                             bibcode_new,
                         )
                     )
-                    continue
+                    return
 
         if key_exists:
             print("{}: EXISTING".format(key))
-            continue
+            return
 
         if key_exists_in_others and args.merge_other:
             bib.entries_dict[key] = bib_other.entries_dict[key]
             bib.entries = list(bib.entries_dict.values())
             print("{}: FOUND IN OTHER BIB SOURCE, MERGED".format(key))
-            continue
+            return
 
         if key_exists_in_others:
             print("{}: FOUND IN OTHER BIB SOURCE, IGNORED".format(key))
-            continue
+            return
 
         bibcode = find_bibcode(key)
         if bibcode:
             to_retrieve.add(bibcode)
             all_entries[bibcode].append(key)
             print("{}: NEW ENTRY => {}".format(key, bibcode))
+            return
         else:
-            not_found.add(key)
-            print("{}: NOT FOUND".format(key))
+            interactive.add(key)
+
+    if args.parallel: 
+        Parallel(n_jobs=args.threads, prefer="threads")(delayed(update)(key) for key in keys)
+    else:
+        [update(key) for key in keys]
+
+    if interactive:
+        for key in interactive:
+            bibcode = find_bibcode_interactive(key)
+            if bibcode:
+                to_retrieve.add(bibcode)
+                all_entries[bibcode].append(key)
+                print("{}: NEW ENTRY => {}".format(key, bibcode))
+            else:
+                not_found.add(key)
+                print("{}: NOT FOUND".format(key))
 
     if not_found:
         print(_headerize("Please check the following keys"))
