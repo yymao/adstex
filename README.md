@@ -180,6 +180,10 @@ source that you specified in your tex source file.
    You can use `--no-update` to turn this feature off,
    so that `adstex` will only look for new entries.
 
+   In addition, you can turn on parallel execution by adding the `--parallel`
+   option. You can further specify the number of threads it uses with
+   `--parallel=x` (default is 8).
+
 6. **I have different citation keys that point to the same paper in my tex file,
    can `adstex` merge and remove the repetitions?**
 
