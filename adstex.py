@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -228,11 +228,6 @@ def authoryear2bibcode(author, year, key):
             return authoryear2bibcode(new_author, year, key)
 
 
-def find_bibcode(key):
-    bibcode = id2bibcode(key)
-    if bibcode:
-        return bibcode
-
 def find_bibcode_interactive(key):
     m = _re_fayear.match(key)
     if m:
@@ -333,17 +328,12 @@ def main():
     parser.add_argument(
         "--parallel",
         "-P",
-        action="store_true",
-        help="enable parallel ADS update queries",
-    )
-    parser.add_argument(
-        "--threads",
-        "-N",
-        action="store",
-        default=8,
+        nargs='?',
+        const=8,
+        default=0,
         type=int,
-        help="number of parallel ADS update queries (default: 8)",
-    )
+        help="enable parallel ADS update queries (default: not enabled) and set the number of threads (default: 8)",
+    )  # thanks to dwijn for adding this option
     parser.add_argument(
         "--version",
         action="version",
@@ -365,9 +355,7 @@ def main():
             print("OK, abort!")
             return
 
-    if len(args.files) == 1 and args.files[0].lower().endswith(
-        ".bib"
-    ):  # bib update mode
+    if len(args.files) == 1 and args.files[0].lower().endswith(".bib"):  # bib update mode
         if args.output or args.other:
             parser.error(
                 "Input file is a bib file, not tex file. This will enter bib update mode. Do not specify `--output` and `--other` together in this mode."
@@ -465,21 +453,23 @@ def main():
             print("{}: FOUND IN OTHER BIB SOURCE, IGNORED".format(key))
             return
 
-        bibcode = find_bibcode(key)
+        bibcode = id2bibcode(key)
         if bibcode:
             to_retrieve.add(bibcode)
             all_entries[bibcode].append(key)
             print("{}: NEW ENTRY => {}".format(key, bibcode))
             return
-        else:
-            interactive.add(key)
 
-    if args.parallel: 
-        Parallel(n_jobs=args.threads, prefer="threads")(delayed(update)(key) for key in keys)
+        # if all above failed
+        interactive.add(key)
+
+    if args.parallel > 1:
+        Parallel(n_jobs=args.parallel, prefer="threads")(delayed(update)(key) for key in keys)
     else:
         [update(key) for key in keys]
 
     if interactive:
+        print(_headerize("Resolving keys that do not contain identifiers..."))
         for key in interactive:
             bibcode = find_bibcode_interactive(key)
             if bibcode:
