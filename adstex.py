@@ -328,11 +328,14 @@ def main():
     parser.add_argument(
         "--parallel",
         "-P",
-        nargs='?',
-        const=8,
-        default=0,
+        action="store_true",
+        help="enable parallel ADS update queries",
+    )  # thanks to dwijn for adding this option
+    parser.add_argument(
+        "--threads",
+        default=8,
         type=int,
-        help="enable parallel ADS update queries (default: not enabled) and set the number of threads (default: 8)",
+        help="specify the number of threads used when --parallel is set (default: 8)",
     )  # thanks to dwijn for adding this option
     parser.add_argument(
         "--version",
@@ -463,8 +466,8 @@ def main():
         # if all above failed
         interactive.add(key)
 
-    if args.parallel > 1:
-        Parallel(n_jobs=args.parallel, prefer="threads")(delayed(update)(key) for key in keys)
+    if args.parallel:
+        Parallel(n_jobs=args.threads, prefer="threads")(delayed(update)(key) for key in keys)
     else:
         [update(key) for key in keys]
 
