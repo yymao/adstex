@@ -18,6 +18,7 @@ from builtins import input
 from collections import defaultdict
 from datetime import date
 from shutil import copyfile
+from joblib import Parallel, delayed
 
 import ads
 import bibtexparser
@@ -29,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -227,11 +228,7 @@ def authoryear2bibcode(author, year, key):
             return authoryear2bibcode(new_author, year, key)
 
 
-def find_bibcode(key):
-    bibcode = id2bibcode(key)
-    if bibcode:
-        return bibcode
-
+def find_bibcode_interactive(key):
     m = _re_fayear.match(key)
     if m:
         fa, y = m.groups()
@@ -329,6 +326,18 @@ def main():
         help="disable SSL verification (it will render your API key vulnerable)",
     )
     parser.add_argument(
+        "--parallel",
+        "-P",
+        action="store_true",
+        help="enable parallel ADS update queries",
+    )  # thanks to dwijn for adding this option
+    parser.add_argument(
+        "--threads",
+        default=8,
+        type=int,
+        help="specify the number of threads used when --parallel is set (default: 8)",
+    )  # thanks to dwijn for adding this option
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -349,9 +358,7 @@ def main():
             print("OK, abort!")
             return
 
-    if len(args.files) == 1 and args.files[0].lower().endswith(
-        ".bib"
-    ):  # bib update mode
+    if len(args.files) == 1 and args.files[0].lower().endswith(".bib"):  # bib update mode
         if args.output or args.other:
             parser.error(
                 "Input file is a bib file, not tex file. This will enter bib update mode. Do not specify `--output` and `--other` together in this mode."
@@ -403,11 +410,12 @@ def main():
     if keys is None:  # bib update mode
         keys = list(bib.entries_dict)
 
+    interactive = set()
     not_found = set()
     to_retrieve = set()
     all_entries = defaultdict(list)
 
-    for key in keys:
+    def update(key):
         key_exists = key in bib.entries_dict
         key_exists_in_others = key in bib_other.entries_dict
 
@@ -432,30 +440,48 @@ def main():
                             bibcode_new,
                         )
                     )
-                    continue
+                    return
 
         if key_exists:
             print("{}: EXISTING".format(key))
-            continue
+            return
 
         if key_exists_in_others and args.merge_other:
             bib.entries_dict[key] = bib_other.entries_dict[key]
             bib.entries = list(bib.entries_dict.values())
             print("{}: FOUND IN OTHER BIB SOURCE, MERGED".format(key))
-            continue
+            return
 
         if key_exists_in_others:
             print("{}: FOUND IN OTHER BIB SOURCE, IGNORED".format(key))
-            continue
+            return
 
-        bibcode = find_bibcode(key)
+        bibcode = id2bibcode(key)
         if bibcode:
             to_retrieve.add(bibcode)
             all_entries[bibcode].append(key)
             print("{}: NEW ENTRY => {}".format(key, bibcode))
-        else:
-            not_found.add(key)
-            print("{}: NOT FOUND".format(key))
+            return
+
+        # if all above failed
+        interactive.add(key)
+
+    if args.parallel:
+        Parallel(n_jobs=args.threads, prefer="threads")(delayed(update)(key) for key in keys)
+    else:
+        [update(key) for key in keys]
+
+    if interactive:
+        print(_headerize("Resolving keys that do not contain identifiers..."))
+        for key in interactive:
+            bibcode = find_bibcode_interactive(key)
+            if bibcode:
+                to_retrieve.add(bibcode)
+                all_entries[bibcode].append(key)
+                print("{}: NEW ENTRY => {}".format(key, bibcode))
+            else:
+                not_found.add(key)
+                print("{}: NOT FOUND".format(key))
 
     if not_found:
         print(_headerize("Please check the following keys"))

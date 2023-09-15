@@ -57,6 +57,7 @@ setup(
         "requests>=2.0",
         "packaging>=17.0",
         "future>=0.12.0 ; python_version < '3.0'",
+        "joblib>=1",
     ],
     entry_points={"console_scripts": ["adstex=adstex:main"]},
 )
