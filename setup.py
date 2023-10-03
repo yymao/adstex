@@ -53,7 +53,7 @@ setup(
     py_modules=[_name],
     install_requires=[
         "ads>=0.12.3",
-        "bibtexparser>=0.6.2",
+        "bibtexparser>=1.3.0,<2.0.0a0",
         "requests>=2.0",
         "packaging>=17.0",
         "future>=0.12.0 ; python_version < '3.0'",

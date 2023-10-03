@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -268,10 +268,16 @@ def entry2bibcode(entry):
 
 
 def update_bib(b1, b2):
-    b1._entries_dict.clear()
-    b2._entries_dict.clear()
-    b1.entries_dict.update(b2.entries_dict)
-    b1.entries = list(b1.entries_dict.values())
+    entries_dict = dict()
+    for entry in b1.entries:
+        entries_dict[entry['ID']] = entry
+    for entry in b2.entries:
+        entries_dict[entry['ID']] = entry
+    b1.entries = list(entries_dict.values())
+    try:
+        b1._entries_dict.clear()
+    except AttributeError:
+        pass
     return b1
 
 
@@ -504,6 +510,7 @@ def main():
             fixedAdsExportQuery(list(to_retrieve), "bibtex").execute(), parser=get_bparser()
         )
         for entry in bib_new.entries:
+            print(entry["ID"])
             entry["ID"] = all_entries[entry["ID"]][0]
         bib = update_bib(bib, bib_new)
         bib_dump_str = bibtexparser.dumps(bib).encode("utf8")
