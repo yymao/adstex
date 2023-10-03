@@ -36,7 +36,7 @@ to generate corresponding bibtex entries!
   No problem, `adstex` will detect this and automatically update the bibtex entry.
   (_This is amazing, yes, I know!_)
 
-- `adstex` also detect citation keys that actually refer to the same paper
+- `adstex` also detects citation keys that actually refer to the same paper
   (e.g., you use an author:year citation key but another collaborator uses an
   arxiv ID as key for the same paper),
   and will prompt you to fix these issues.
@@ -180,9 +180,9 @@ source that you specified in your tex source file.
    You can use `--no-update` to turn this feature off,
    so that `adstex` will only look for new entries.
 
-   In addition, you can turn on parallel execution by adding the `--parallel`
+   In addition, you can turn on parallel execution by adding the `--parallel` (`-p`)
    option. You can further specify the number of threads it uses with
-   `--parallel=x` (default is 8).
+   `--threads=x` (default is 8).
 
 6. **I have different citation keys that point to the same paper in my tex file,
    can `adstex` merge and remove the repetitions?**
