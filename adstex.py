@@ -334,6 +334,7 @@ def main():
     parser.add_argument(
         "--parallel",
         "-P",
+        "-p",
         action="store_true",
         help="enable parallel ADS update queries",
     )  # thanks to dwijn for adding this option
