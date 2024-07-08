@@ -5,7 +5,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2023 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2024 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import, print_function
@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -81,11 +81,11 @@ def fixedAdsExportQuery(*args, **kwargs):
 
 
 def get_bparser():
-    try:
-        mybparser = bibtexparser.bparser.BibTexParser(common_strings=True)
-        mybparser.bib_database.strings["june"] = "June"
-    except TypeError:
-        mybparser = bibtexparser.bparser.BibTexParser()
+    mybparser = bibtexparser.bparser.BibTexParser(
+        common_strings=True,
+        ignore_nonstandard_types=False,
+    )
+    mybparser.bib_database.strings["june"] = "June"
     return mybparser
 
 
