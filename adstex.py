@@ -519,6 +519,8 @@ def main():
             copyfile(args.output, args.output + ".bak")
         with open(args.output, "wb") as fp:
             fp.write(bib_dump_str)
+    else:
+        print('Nothing to write/update.')
 
     print(_headerize("Done!"))
 
