@@ -454,8 +454,8 @@ def main():
             return
 
         if key_exists_in_others and args.merge_other:
-            bib.entries_dict[key] = bib_other.entries_dict[key]
-            bib.entries = list(bib.entries_dict.values())
+            bib._entries_dict[key] = bib_other.entries_dict[key]
+            bib.entries = list(bib._entries_dict.values())
             print("{}: FOUND IN OTHER BIB SOURCE, MERGED".format(key))
             return
 
