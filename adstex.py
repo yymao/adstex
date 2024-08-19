@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
