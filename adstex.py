@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -454,8 +454,7 @@ def main():
             return
 
         if key_exists_in_others and args.merge_other:
-            bib.entries_dict[key] = bib_other.entries_dict[key]
-            bib.entries = list(bib.entries_dict.values())
+            bib.entries.append(bib_other.entries_dict[key])
             print("{}: FOUND IN OTHER BIB SOURCE, MERGED".format(key))
             return
 
@@ -519,6 +518,8 @@ def main():
             copyfile(args.output, args.output + ".bak")
         with open(args.output, "wb") as fp:
             fp.write(bib_dump_str)
+    else:
+        print('Nothing to write/update.')
 
     print(_headerize("Done!"))
 
