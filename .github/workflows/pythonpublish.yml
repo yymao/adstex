@@ -6,10 +6,13 @@ on:
 
 jobs:
   deploy:
+    name: Upload release to PyPI
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://pypi.org/p/adstex
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v4
     - uses: pypa/gh-action-pypi-publish@release/v1
