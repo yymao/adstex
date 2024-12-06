@@ -41,7 +41,7 @@ _re_cite = re.compile(
     r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[\[<](?:(?!\n{2,}).)*?(?<!\\)[\]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
     re.S,
 )
-_re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
+_re_fayear = re.compile(r"([A-Za-z-:]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
 _re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b")
 _re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b")
@@ -100,6 +100,13 @@ def _y2toy4(y2):
     y2 = int(y2)
     k = int(y2 > _this_year)
     return str((_this_cent - k) * 100 + y2)
+
+def _fa_split(fa):
+    fa = fa.strip(':')
+    fa = fa.split(':')
+    if len(fa) == 1:
+        return fa[0], []
+    return fa[0], fa[1:]
 
 
 def _is_like_string(s):
@@ -175,8 +182,9 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
                 pass
 
 
-def authoryear2bibcode(author, year, key):
-    q = 'first_author:"{}" year:{} database:{}'.format(author, year, _database)
+def authoryear2bibcode(author, year, key, coauthors=[]):
+    coauthors = ' '.join([f'author:"{_a}"' for _a in coauthors])
+    q = 'first_author:"{}" {} year:{} database:{}'.format(author, coauthors, year, _database)
     entries = list(
         fixedAdsSearchQuery(
             q=q,
@@ -232,9 +240,10 @@ def find_bibcode_interactive(key):
     m = _re_fayear.match(key)
     if m:
         fa, y = m.groups()
+        fa, ca = _fa_split(fa)
         if len(y) == 2:
             y = _y2toy4(y)
-        bibcode = authoryear2bibcode(fa, y, key)
+        bibcode = authoryear2bibcode(fa, y, key, coauthors=ca)
         if bibcode:
             return bibcode
 
