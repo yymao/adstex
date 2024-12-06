@@ -30,7 +30,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -176,7 +176,7 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
 
 
 def authoryear2bibcode(author, year, key):
-    q = 'author:"^{}" year:{} database:{}'.format(author, year, _database)
+    q = 'first_author:"{}" year:{} database:{}'.format(author, year, _database)
     entries = list(
         fixedAdsSearchQuery(
             q=q,
