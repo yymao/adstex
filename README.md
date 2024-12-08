@@ -23,9 +23,9 @@ to generate corresponding bibtex entries!
   and works with various styles of citation keys.
   For example, `adstex` would work with all the following:
   ```tex
-  \citet{1705.03888}
-  \citep[e.g.,][]{Mao:2015, White2018}
-  \citealt{10.1093/mnras/stx3111, 2017arXiv170909665M}
+  \citet{2404.14498}
+  \citep[e.g.,][]{Mao:Geha:2021, Drlica‑Wagner2019}
+  \citealt{10.1093/mnras/stx3111, 2024ApJ...976..118G}
   ```
 
 - `adstex` works along with your existing bibtex files.
@@ -84,8 +84,6 @@ Once you finish the paper (_sorry, can't help with that!_), simply run `adstex`
 with the following command (_Internet connection is needed for `adstex` to work._):
 
 ```bash
-# Note: if you are using version 0.2.x, please add the -o option. See below.
-
 adstex your_tex_source.tex
 ```
 
@@ -112,11 +110,42 @@ source that you specified in your tex source file.
   If you don't see the paper you are looking for, you can
   directly enter an ADS bibcode or arXiv ID when prompted.
 
-- You can also find a complete option list by running:
-  ```bash
-  adstex --help
-  ```
-  However, you may find the following FAQs more informative.
+
+### Optional arguments
+
+Here are some useful optional arguments that you can specify.
+You can also find a complete option list by running:
+```bash
+adstex --help
+```
+
+- `--use-coauthors` (new in v0.6.0): Use coauthors in the citation key in the ADS search.
+   The citation keys should have the format of `firstauthor:coauthor1:coauthor2:year`.
+
+- `--include-physics`: Include the physics database when searching `author:year` on ADS.
+  Without this option, only the astronomy database is used.
+
+- `--parallel`: Enable multiple threads to speed up the ADS search.
+
+- `--no-update`: Ignore all keys that are already in the bib file.
+  This option will speed up the search, but will not update any arXiv papers that are published in journals.
+
+- `--no-backup`: Do not generate the backup bib file when running `adstex`.
+
+If you want to set any of these optional features as the default behavior,
+you can set the `ADSTEX_ARGS` environment variable in your `~/.bashrc` or `~/.cshrc` file.
+Here's an example:
+
+```bash
+# If you use bash or bash-like shells --
+export ADSTEX_ARGS="--use-coauthors --include-physics --parallel"
+```
+```csh
+# If you use csh or csh-like shells --
+setenv ADSTEX_ARGS "--use-coauthors --include-physics --parallel"
+```
+
+When running `adstex`, you can add `--ignore-env-args` to ignore everything set in `ADSTEX_ARGS`.
 
 
 ## FAQs
@@ -126,8 +155,10 @@ source that you specified in your tex source file.
    Not always; `adstex` uses [regular expression](https://en.wikipedia.org/wiki/Regular_expression), not AI.
 
    For citation keys with multiple authors, if you use a separator to separate
-   the surnames, (e.g., `\cite{Press:Schechter:1974}`), the `adstex` will be able to
+   the surnames, (e.g., `\cite{Press:Schechter:1974}`), `adstex` will be able to
    identify the first author and year to conduct a search on the ADS.
+   If you want `adstex` to also use the coauthor in the citation key (in this example, Schechter),
+   please add the `--use-coauthors` argument when running `adstex`.
 
    For compound surnames, your best bets are
    joining the words without the spaces (e.g., `\cite{deSitter:1913}`), and

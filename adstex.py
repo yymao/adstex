@@ -12,6 +12,7 @@ from __future__ import absolute_import, print_function
 
 import os
 import re
+import sys
 import warnings
 from argparse import ArgumentParser
 from builtins import input
@@ -30,7 +31,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.5.4"
+__version__ = "0.6.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -41,7 +42,7 @@ _re_cite = re.compile(
     r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[\[<](?:(?!\n{2,}).)*?(?<!\\)[\]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
     re.S,
 )
-_re_fayear = re.compile(r"([A-Za-z-]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
+_re_fayear = re.compile(r"([A-Za-z-:]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
 _re_id = {}
 _re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b")
 _re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b")
@@ -61,21 +62,22 @@ _name_prefix = (
 _name_prefix = sorted(_name_prefix, key=len, reverse=True)
 
 # global configs
-_database = "astronomy"
-_disable_ssl_verification = False
+_DATABASE = "astronomy"
+_DISABLE_SSL = False
+_USE_COAUTHORS = False
 
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
     q.session.headers.pop("Content-Type", None)
-    if _disable_ssl_verification:
+    if _DISABLE_SSL:
         q.session.verify = False
     return q
 
 
 def fixedAdsExportQuery(*args, **kwargs):
     q = ads.ExportQuery(*args, **kwargs)
-    if _disable_ssl_verification:
+    if _DISABLE_SSL:
         q.session.verify = False
     return q
 
@@ -100,6 +102,13 @@ def _y2toy4(y2):
     y2 = int(y2)
     k = int(y2 > _this_year)
     return str((_this_cent - k) * 100 + y2)
+
+
+def _split_authors(fa):
+    fa = fa.strip(':').split(':')
+    if _USE_COAUTHORS and len(fa) > 1:
+        return fa[0], fa[1:]
+    return fa[0], None
 
 
 def _is_like_string(s):
@@ -175,8 +184,9 @@ def id2bibcode(id_this, possible_id_types=("bibcode", "doi", "arxiv")):
                 pass
 
 
-def authoryear2bibcode(author, year, key):
-    q = 'first_author:"{}" year:{} database:{}'.format(author, year, _database)
+def authoryear2bibcode(author, year, key, coauthors=None):
+    coauthors = ' '.join([f'author:"{_a}"' for _a in coauthors]) if coauthors else ""
+    q = 'first_author:"{}" {} year:{} database:{}'.format(author, coauthors, year, _DATABASE)
     entries = list(
         fixedAdsSearchQuery(
             q=q,
@@ -232,9 +242,10 @@ def find_bibcode_interactive(key):
     m = _re_fayear.match(key)
     if m:
         fa, y = m.groups()
+        fa, ca = _split_authors(fa)
         if len(y) == 2:
             y = _y2toy4(y)
-        bibcode = authoryear2bibcode(fa, y, key)
+        bibcode = authoryear2bibcode(fa, y, key, coauthors=ca)
         if bibcode:
             return bibcode
 
@@ -332,6 +343,11 @@ def main():
         help="disable SSL verification (it will render your API key vulnerable)",
     )
     parser.add_argument(
+        "--use-coauthors",
+        action="store_true",
+        help="include coauthors (in the format of 'fa:ca1:ca2:year') in ADS search",
+    )  # thanks to birnstiel for making this suggestion
+    parser.add_argument(
         "--parallel",
         "-P",
         "-p",
@@ -345,25 +361,38 @@ def main():
         help="specify the number of threads used when --parallel is set (default: 8)",
     )  # thanks to dwijn for adding this option
     parser.add_argument(
+        "--ignore-env-args",
+        action="store_true",
+        help="ignore the arguments set in ADSTEX_ARGS environment variable",
+    )  # thanks to birnstiel for making this suggestion
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
     )
     args = parser.parse_args()
 
+    env_args = os.getenv("ADSTEX_ARGS")
+    if env_args and not args.ignore_env_args:
+        args = parser.parse_args(sys.argv[1:] + env_args.strip().split())
+
     if args.include_physics:
-        global _database
-        _database = '("astronomy" OR "physics")'
+        global _DATABASE
+        _DATABASE = '("astronomy" OR "physics")'
 
     if args.disable_ssl_verification:
         ans = input("You have chosen to disable SSL verification. This will render your API key vulnerable. Do you want to continue? [y/N] ")
         if ans in ("y", "Y", "yes", "Yes", "YES"):
-            global _disable_ssl_verification
-            _disable_ssl_verification = True
+            global _DISABLE_SSL
+            _DISABLE_SSL = True
             warnings.filterwarnings("ignore", "Unverified HTTPS request is being made", Warning)
         else:
             print("OK, abort!")
             return
+
+    if args.use_coauthors:
+        global _USE_COAUTHORS
+        _USE_COAUTHORS = True
 
     if len(args.files) == 1 and args.files[0].lower().endswith(".bib"):  # bib update mode
         if args.output or args.other:
