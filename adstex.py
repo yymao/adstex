@@ -31,7 +31,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.6.0"
+__version__ = "0.6.1-alpha"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -69,6 +69,7 @@ _USE_COAUTHORS = False
 
 def fixedAdsSearchQuery(*args, **kwargs):
     q = ads.SearchQuery(*args, **kwargs)
+    print("[DEBUG] ADS token:", q.token)
     q.session.headers.pop("Content-Type", None)
     if _DISABLE_SSL:
         q.session.verify = False
