@@ -6,7 +6,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2024 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2025 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import
@@ -53,12 +53,12 @@ setup(
     keywords="bibtex ads",
     py_modules=[_name],
     install_requires=[
-        "ads>=0.12.3",
+        "ads>=0.12.7,<1.0.0a0",
         "bibtexparser>=1.3.0,<2.0.0a0",
         "requests>=2.0",
         "packaging>=17.0",
+        "joblib>=1.0",
         "future>=0.12.0 ; python_version < '3.0'",
-        "joblib>=1",
     ],
     entry_points={"console_scripts": ["adstex=adstex:main"]},
 )

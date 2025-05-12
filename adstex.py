@@ -5,7 +5,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2024 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2025 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import, print_function
@@ -31,7 +31,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
