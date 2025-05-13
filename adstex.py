@@ -356,9 +356,9 @@ def main():
     )  # thanks to dwijn for adding this option
     parser.add_argument(
         "--threads",
-        default=8,
+        default=None,
         type=int,
-        help="specify the number of threads used when --parallel is set (default: 8)",
+        help="specify the number of threads used when --parallel is set (default: all available)",
     )  # thanks to dwijn for adding this option
     parser.add_argument(
         "--ignore-env-args",
@@ -502,6 +502,8 @@ def main():
         interactive.add(key)
 
     if args.parallel:
+        if args.threads is None:
+            args.threads = os.cpu_count() or 1
         Parallel(n_jobs=args.threads, prefer="threads")(delayed(update)(key) for key in keys)
     else:
         [update(key) for key in keys]
