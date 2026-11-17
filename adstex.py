@@ -5,7 +5,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2025 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2026 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import, print_function
@@ -22,6 +22,7 @@ from shutil import copyfile
 from joblib import Parallel, delayed
 
 import ads
+import ads.exceptions
 import bibtexparser
 import packaging.version
 import requests
@@ -31,7 +32,7 @@ try:
 except ImportError:
     from urllib import unquote
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
 _this_year = date.today().year % 100
 _this_cent = date.today().year // 100
@@ -39,14 +40,15 @@ _this_cent = date.today().year // 100
 _re_comment = re.compile(r"(?<!\\)%.*(?=[\r\n])")
 _re_bib = re.compile(r"\\(?:no)?bibliography\*?(?:(?!\n{2,})\s)*{((?:(?!\n{2,})[^{}])+)}")
 _re_cite = re.compile(
-    r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[\[<](?:(?!\n{2,}).)*?(?<!\\)[\]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
-    re.S,
+    pattern=r"\\(?:bibentry|[cC]ite[a-zA]{0,7})\*?(?:(?!\n{2,})\s)*(?:(?<!\\)[\[<](?:(?!\n{2,}).)*?(?<!\\)[\]>](?:(?!\n{2,})\s)*)*{((?:(?!\n{2,})[^{}])+)}",
+    flags=re.S,
 )
 _re_fayear = re.compile(r"([A-Za-z-:]+)(?:(?=[\W_])[^\s\d,]+)?((?:\d{2})?\d{2})")
-_re_id = {}
-_re_id["doi"] = re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b")
-_re_id["bibcode"] = re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b")
-_re_id["arxiv"] = re.compile(r"\b(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})\b")
+_re_id = {
+    "doi": re.compile(r"\b10\.\d{4,}(?:\.\d+)*\/(?:(?!['\"&<>])\S)+\b"),
+    "bibcode": re.compile(r"\b\d{4}\D\S{13}[A-Z.:]\b"),
+    "arxiv": re.compile(r"\b(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[A-Za-z-]+)?\/\d{7})\b"),
+}
 
 _name_prefix = (
     "van",
@@ -82,8 +84,15 @@ def fixedAdsExportQuery(*args, **kwargs):
     return q
 
 
+def bparser_customization(entry):
+    if "title" in entry:
+        entry["title"] = entry["title"].replace("─", "--")
+    return entry
+
+
 def get_bparser():
     mybparser = bibtexparser.bparser.BibTexParser(
+        customization=bparser_customization,
         common_strings=True,
         ignore_nonstandard_types=False,
     )
@@ -575,4 +584,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print(_headerize("Abort! adstex interupted by a keyboard signal!"))
+        print(_headerize("Abort! adstex interrupted by a keyboard signal!"))

@@ -6,7 +6,7 @@ from citation keys (identifiers, author+year) in your TeX source files.
 Project website: https://github.com/yymao/adstex
 
 The MIT License (MIT)
-Copyright (c) 2015-2025 Yao-Yuan Mao (yymao)
+Copyright (c) 2015-2026 Yao-Yuan Mao (yymao)
 http://opensource.org/licenses/MIT
 """
 from __future__ import absolute_import
@@ -43,11 +43,11 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
         "Topic :: Scientific/Engineering :: Astronomy",
     ],
     keywords="bibtex ads",
